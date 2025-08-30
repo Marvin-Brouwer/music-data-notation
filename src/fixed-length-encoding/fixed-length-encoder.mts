@@ -138,12 +138,12 @@ export function fixedLengthEncoder(config: FixedLengthEncoderConfig) {
     const hashBytes = new Uint8Array(sha256.arrayBuffer(plainText));
 
     // 2️⃣  Append parity using functional RS helper
-    const rsBlock = rs.encode(hashBytes, paritySymbolCount); // length = 32 + paritySymbolCount
+    const rsBlock = rs.encode(hashBytes, outputLength, paritySymbolCount); // length = 32 + paritySymbolCount
     if (isEncoderError(rsBlock)) return rsBlock;
 
     // 3️⃣  Determine how many bytes we need to produce exactly `outputLength` symbols
     const bitsPerSymbol = Math.log2(tokenList.length);
-    const neededByteCount = Math.ceil((outputLength * bitsPerSymbol) / 8);
+    const neededByteCount = Math.ceil(((outputLength -1) * bitsPerSymbol) / 8);
     const truncatedSlice = rsBlock.slice(0, neededByteCount); // deterministic truncation
 
     function getSymbolArray() {

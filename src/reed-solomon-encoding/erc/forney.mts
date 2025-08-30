@@ -1,4 +1,4 @@
-import { EXP_TABLE, gfInv, gfMul } from "./gf256.mts";
+import gf, { EXP_TABLE } from "./gf256.mts";
 
 /**
    * Forney algorithm – compute error magnitudes given syndromes,
@@ -23,9 +23,9 @@ export function forneyAlgorithm(
             // (i+1) is a small integer; we multiply via repeated gfMul.
             let mult = 1;
             for (let k = 0; k < i + 1; k++) {
-                mult = gfMul(mult, 2); // multiply by 2 repeatedly (since 2 is a generator)
+                mult = gf.mul(mult, 2); // multiply by 2 repeatedly (since 2 is a generator)
             }
-            derivative[i] = gfMul(coeff, mult);
+            derivative[i] = gf.mul(coeff, mult);
         }
     }
 
@@ -39,7 +39,7 @@ export function forneyAlgorithm(
             const s = syndromes[i];
             if (s === 0) continue;
             const power = ((i + 1) * (255 - pos)) % 255;
-            omega ^= gfMul(s, EXP_TABLE[power]);
+            omega ^= gf.mul(s, EXP_TABLE[power]);
         }
 
         // Compute σ'(α^{-pos})
@@ -48,15 +48,15 @@ export function forneyAlgorithm(
             const coeff = derivative[i];
             if (coeff === 0) continue;
             const power = ((i + 1) * (255 - pos)) % 255;
-            sigmaPrime ^= gfMul(coeff, EXP_TABLE[power]);
+            sigmaPrime ^= gf.mul(coeff, EXP_TABLE[power]);
         }
 
         if (sigmaPrime === 0) {
             throw new Error('Forney algorithm division by zero');
         }
 
-        const invSigmaPrime = gfInv(sigmaPrime);
-        const magnitude = gfMul(omega, invSigmaPrime);
+        const invSigmaPrime = gf.inv(sigmaPrime);
+        const magnitude = gf.mul(omega, invSigmaPrime);
         magnitudes[idx] = magnitude;
     }
 

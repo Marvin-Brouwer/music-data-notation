@@ -1,4 +1,4 @@
-import { gfDiv, gfInv, gfMul } from "./gf256.mts";
+import gf from "./gf256.mts";
 
 /**
   * Berlekamp‑Massey algorithm – returns the error‑locator polynomial σ(x)
@@ -15,7 +15,7 @@ export function berlekampMassey(syndromes: Uint8Array): Uint8Array {
         // Compute discrepancy d
         let d = syndromes[n];
         for (let i = 1; i <= L; i++) {
-            d ^= gfMul(C[C.length - 1 - i], syndromes[n - i]);
+            d ^= gf.mul(C[C.length - 1 - i], syndromes[n - i]);
         }
 
         if (d === 0) {
@@ -23,12 +23,12 @@ export function berlekampMassey(syndromes: Uint8Array): Uint8Array {
             continue;
         }
 
-        const coeff = gfDiv(d, b);
+        const coeff = gf.div(d, b);
         // C = C - coeff * x^m * B
         const shiftB = new Uint8Array(B.length + m);
         shiftB.set(B, 0); // B shifted by m positions (prepend zeros)
         for (let i = 0; i < shiftB.length; i++) {
-            shiftB[i] = gfMul(shiftB[i], coeff);
+            shiftB[i] = gf.mul(shiftB[i], coeff);
         }
 
         // Pad C to the same length as shiftB
@@ -55,9 +55,9 @@ export function berlekampMassey(syndromes: Uint8Array): Uint8Array {
 
     // Ensure the polynomial is monic (leading coefficient = 1)
     if (C[0] !== 1) {
-        const invLead = gfInv(C[0]);
+        const invLead = gf.inv(C[0]);
         for (let i = 0; i < C.length; i++) {
-            C[i] = gfMul(C[i], invLead);
+            C[i] = gf.mul(C[i], invLead);
         }
     }
     return C;

@@ -10,6 +10,14 @@ const DEFAULT_CONFIGURATION: FixedLengthEncoderConfig = {
     tokenList: TOKEN_LIST
 }
 
+  const sut = fixedLengthEncoder(DEFAULT_CONFIGURATION); // defaults
+
+sut.encode('hello').then(r => {
+  if (isEncoderError(r)) return;
+  console.log('token:', r);
+  console.log('length:', r.symbolArray.length);
+});
+
 describe('fixedLengthEncoder – default configuration', () => {
   // Encoder constructed once for the whole suite (still follows AAA inside each test)
   const sut = fixedLengthEncoder(DEFAULT_CONFIGURATION); // defaults

@@ -1,275 +1,242 @@
+
+/* ------------------------------------------------------------------
+ *  Small utilities – kept out of the main encode/decode bodies
+ * ---------------------------------------------------------------- */
+
 import { berlekampMassey } from "./berlekamp-massey.mts";
 import { forneyAlgorithm } from "./forney.mts";
-import { EXP_TABLE, gfMul } from "./gf256.mts";
+import gf from "./gf256.mts";
 
 /**
- * Minimal Reed‑Solomon codec (compatible with the historic `erc-js` API).
+ * Compute the syndromes S₁ … S_{nSym}.
  *
- * The implementation follows the classic “generator‑polynomial” construction
- * over GF(256) with the primitive polynomial `x⁸ + x⁴ + x³ + x² + 1`
- * (0x11d).  It supports any codeword length `n` up to 255 bytes.
- *
- * @example
- * ```ts
- * import ReedSolomon from './rs/erc-js';
- *
- * const n = 255;                     // total symbols (data + parity)
- * const rs = new ReedSolomon(n);
- *
- * const data = Uint8Array.from([1, 2, 3, 4, 5]); // ← k = n - parityBytes
- * const encoded = rs.encode(data);               // length === n
- *
- * // Corrupt up to floor(parityBytes/2) symbols …
- * encoded[10] ^= 0xff;
- *
- * const recovered = rs.decode(encoded); // → Uint8Array([1,2,3,4,5])
- * ```
- *
- * @public
+ * @param gf        GF256 instance
+ * @param block     Received block (data + parity)
+ * @param nSym      Number of parity symbols
+ * @returns Uint8Array of length nSym containing the syndromes
  */
+function computeSyndromes(block: Uint8Array, nSym: number): Uint8Array {
+  const synd = new Uint8Array(nSym);
+  for (let i = 0; i < nSym; i++) {
+    const evalPt = gf.exp(i + 1); // α^{i+1}
+    let acc = 0;
+    for (let j = 0; j < block.length; j++) {
+      // block[j] * (evalPt ^ j)
+      const term = gf.mul(block[j], gf.pow(evalPt, j));
+      acc = gf.add(acc, term);
+    }
+    synd[i] = acc;
+  }
+  return synd;
+}
+
+/**
+ * Locate error positions using a Chien search.
+ *
+ * @param gf        GF256 instance
+ * @param lambda    Error‑locator polynomial (coefficients, low‑degree first)
+ * @param n         Block length (data + parity)
+ * @returns array of error positions (indices counted from the left, 0‑based)
+ */
+function locateErrors(lambda: Uint8Array, n: number): number[] {
+  const errPos: number[] = [];
+
+  // λ(x) = Σ λ_i x^i .  We evaluate λ(α^{-i}) for i = 0 … n‑1.
+  for (let i = 0; i < n; i++) {
+    const evalPt = gf.exp(255 - i); // α^{‑i} == α^{255‑i} because α^{255}=1
+    let sum = 0;
+    for (let j = 0; j < lambda.length; j++) {
+      const term = gf.mul(lambda[j], gf.pow(evalPt, j));
+      sum = gf.add(sum, term);
+    }
+    if (sum === 0) {
+      // Position i (from the left) is erroneous.
+      errPos.push(i);
+    }
+  }
+  return errPos;
+}
+
+/**
+ * Apply Forney’s algorithm to correct the block in‑place.
+ *
+ * @param gf            GF256 instance
+ * @param block         Received block (will be mutated)
+ * @param syndromes     Syndromes S₁…S_{nSym}
+ * @param lambda        Error‑locator polynomial
+ * @param errPos        Error positions (as returned by locateErrors)
+ */
+function correctErrors(
+  block: Uint8Array,
+  syndromes: Uint8Array,
+  lambda: Uint8Array,
+  errPos: number[]
+): void {
+  // Forney expects the error‑locator polynomial *without* the leading 1.
+  // The helper we imported works with that convention.
+  const errorValues = forneyAlgorithm(syndromes, lambda, errPos);
+
+  // Apply the corrections.
+  for (let i = 0; i < errPos.length; i++) {
+    const pos = errPos[i];
+    block[pos] = gf.add(block[pos], errorValues[i]); // subtraction == addition in GF(256)
+  }
+}
+
+/**
+ * Generate parity bytes for a systematic RS code.
+ *
+ * This follows the classic “polynomial division” approach:
+ *   – Treat the message as a polynomial M(x).
+ *   – Multiply by x^{nSym} (i.e. shift left by nSym symbols).
+ *   – Divide by the generator g(x) = (x‑α¹)…(x‑α^{nSym}).
+ *   – The remainder R(x) are the parity symbols.
+ *
+ * @param gf            GF256 instance
+ * @param data          Payload (Uint8Array)
+ * @param nSym          Number of parity symbols
+ * @returns Uint8Array of length nSym containing the parity bytes
+ */
+function generateParity(data: Uint8Array, nSym: number): Uint8Array {
+  // Work on a temporary buffer that is `data.length + nSym` long.
+  const tmp = new Uint8Array(data.length + nSym);
+  tmp.set(data, 0); // lower part = message, upper part = zeros (placeholder for remainder)
+
+  // Synthetic division by the generator polynomial.
+  for (let i = 0; i < data.length; i++) {
+    const coef = tmp[i];
+    if (coef === 0) continue; // nothing to propagate
+
+    // Multiply the coefficient by each root α^{j} (j = 1 … nSym)
+    for (let j = 1; j <= nSym; j++) {
+      const idx = i + j;
+      const term = gf.mul(coef, gf.exp(j));
+      tmp[idx] ^= term; // XOR == addition in GF(256)
+    }
+  }
+
+  // The last `nSym` bytes now hold the remainder → the parity.
+  return tmp.subarray(data.length);
+}
+
+/* ------------------------------------------------------------------
+ *  ReedSolomon class – public API
+ * ---------------------------------------------------------------- */
+
 export default class ReedSolomon {
-  /** Total length of a codeword (data + parity). Must be ≤ 255. */
+  /** Max block size for GF(256) */
+  private static readonly MAX_BLOCK = 255;
+
+  /** Total length of a code word (data + parity) */
   private readonly n: number;
 
-  /** Number of parity symbols (`n - k`). Determined from the first `encode` call. */
-  private parityBytes!: number;
-
-  /** Generator polynomial for the current `parityBytes`. Cached after first use. */
-  private generatorPoly!: Uint8Array;
+  /** Number of parity symbols – determined on first encode */
+  private nSym: number = 0;
 
   /**
-   * Create a codec for a fixed codeword length.
-   *
-   * @param n Total number of symbols (data + parity). Must satisfy `1 ≤ n ≤ 255`.
-   * @throws If `n` is outside the supported range.
+   * @param totalLength – total block size (must be ≤ 255)
    */
-  constructor(n: number) {
-    if (n <= 0 || n > 255) {
+  constructor(totalLength: number) {
+    if (
+      typeof totalLength !== "number" ||
+      totalLength <= 0 ||
+      totalLength > ReedSolomon.MAX_BLOCK
+    ) {
       throw new Error(
-        'ReedSolomon: codeword length must be between 1 and 255'
+        `totalLength must be a positive integer ≤ ${ReedSolomon.MAX_BLOCK}`
       );
     }
-    this.n = n;
+    this.n = totalLength;
   }
 
-  /* ------------------------------------------------------------------
-   * PUBLIC API
-   * ------------------------------------------------------------------ */
-
   /**
-   * Encode a data block, appending parity symbols.
+   * Encode a payload into a systematic RS block.
    *
    * @param data Uint8Array containing the raw payload.
-   * @returns Uint8Array of length `n` (payload followed by parity bytes).
-   *
-   * @throws If `data.length` is larger than the allowed data portion
-   *         (`n - parityBytes`). The first call determines `parityBytes`
-   *         implicitly: `parityBytes = n - data.length`. Subsequent calls
-   *         must use the same `parityBytes` size, otherwise an error is thrown.
+   * @returns Uint8Array of length `totalLength` (payload + parity).
+   * @throws Error on invalid arguments.
    */
   encode(data: Uint8Array): Uint8Array {
-    // Determine parity size on first call.
-    if (this.parityBytes === undefined) {
-      const parity = this.n - data.length;
-      if (parity <= 0) {
-        throw new Error(
-          `ReedSolomon.encode: data length (${data.length}) exceeds codeword length (${this.n})`
-        );
-      }
-      this.parityBytes = parity;
-      this.generatorPoly = this.buildGenerator(this.parityBytes);
-    } else {
-      // Subsequent calls must respect the same parity size.
-      if (data.length !== this.n - this.parityBytes) {
-        throw new Error(
-          `ReedSolomon.encode: expected data length ${this.n -
-            this.parityBytes}, got ${data.length}`
-        );
-      }
+    if (!(data instanceof Uint8Array)) {
+      throw new Error("Input data must be a Uint8Array");
+    }
+    if (data.length >= this.n) {
+      throw new Error(
+        `Payload too large – must be shorter than totalLength (${this.n})`
+      );
     }
 
-    // Append `parityBytes` zeroes to the message (big‑endian representation).
-    const msgPoly = new Uint8Array(this.n);
-    msgPoly.set(data, 0); // data occupies the high‑order part
+    const parityBytes = this.n - data.length;
+    if (parityBytes <= 0) {
+      throw new Error("Parity size must be > 0");
+    }
 
-    // Compute remainder = msgPoly mod generatorPoly.
-    const remainder = this.modulo(msgPoly);
+    // Remember the parity size for later decode calls (mirrors original behaviour)
+    this.nSym = parityBytes;
 
-    // Copy remainder into the parity region (the last `parityBytes` bytes).
-    msgPoly.set(remainder, this.n - this.parityBytes);
+    // Compute parity using the helper that performs synthetic division.
+    const parity = generateParity(data, parityBytes);
 
-    return msgPoly;
+    // Assemble final block: data followed by parity.
+    const block = new Uint8Array(this.n);
+    block.set(data, 0);
+    block.set(parity, data.length);
+    return block;
   }
 
   /**
-   * Decode a codeword (payload + parity) and correct errors if possible.
+   * Decode a received block and recover the original payload.
    *
-   * @param block Uint8Array of length `n`.
-   * @returns Uint8Array containing only the original data part
-   *          (length `n - parityBytes`).
-   *
-   * @throws If the block length does not equal `n`.  
-   * @throws If the number of detected errors exceeds the correction
-   *         capability (`⌊parityBytes/2⌋`). In that case the underlying
-   *         algorithm throws, and the caller can convert the exception
-   *         into a `DecodingError` (your wrapper already does that).
+   * @param block Uint8Array of length `totalLength`.
+   * @returns Uint8Array containing the original payload.
+   * @throws Error if the block is malformed or unrecoverable.
    */
   decode(block: Uint8Array): Uint8Array {
+    if (!(block instanceof Uint8Array)) {
+      throw new Error("Block must be a Uint8Array");
+    }
     if (block.length !== this.n) {
       throw new Error(
-        `ReedSolomon.decode: expected block length ${this.n}, got ${block.length}`
+        `Block length (${block.length}) does not match expected totalLength (${this.n})`
       );
     }
-
-    // If parityBytes hasn't been set yet (e.g., you called decode before encode),
-    // infer it from the block: assume the maximum possible parity (n/2) and
-    // adjust later when the syndrome indicates the true count.
-    if (this.parityBytes === undefined) {
-      // Conservative guess – we will recompute the exact parity after syndrome.
-      this.parityBytes = Math.floor(this.n / 2);
-      this.generatorPoly = this.buildGenerator(this.parityBytes);
-    }
-
-    // Compute syndromes.
-    const syndromes = this.computeSyndromes(block);
-    const allZero = syndromes.every((s) => s === 0);
-    if (allZero) {
-      // No errors – just strip the parity.
-      return block.subarray(0, this.n - this.parityBytes);
-    }
-
-    // Use the Berlekamp‑Massey algorithm to find the error‑locator polynomial.
-    const sigma = berlekampMassey(syndromes);
-
-    // Find error locations (Chien search).
-    const errorPositions = this.findErrorLocations(sigma);
-
-    if (errorPositions.length > Math.floor(this.parityBytes / 2)) {
+    if (this.nSym <= 0) {
       throw new Error(
-        `ReedSolomon.decode: too many errors (${errorPositions.length}) – cannot correct`
+        "Parity size unknown – call encode() first or construct with explicit parity"
       );
     }
 
-    // Compute error magnitudes (Forney algorithm).
-    const errorMagnitudes = forneyAlgorithm(
-      syndromes,
-      sigma,
-      errorPositions
-    );
+    const parityBytes = this.nSym;
+    const dataLen = this.n - parityBytes;
 
-    // Correct the errors in a copy of the block.
-    const corrected = Uint8Array.from(block);
-    for (let i = 0; i < errorPositions.length; i++) {
-      const pos = errorPositions[i];
-      corrected[pos] ^= errorMagnitudes[i];
+    // 1️⃣ Compute syndromes.
+    const syndromes = computeSyndromes(block, parityBytes);
+    const hasError = syndromes.some((v) => v !== 0);
+
+    // If no syndromes are non‑zero, the block is clean.
+    if (!hasError) {
+      return block.subarray(0, dataLen);
     }
 
-    // Return the data portion (strip parity).
-    return corrected.subarray(0, this.n - this.parityBytes);
-  }
+    // 2️⃣ Berlekamp‑Massey → error‑locator polynomial λ(x).
+    const lambda = berlekampMassey(syndromes);
 
-  /* ------------------------------------------------------------------
-   * PRIVATE HELPERS
-   * ------------------------------------------------------------------ */
-
-  /**
-   * Build the generator polynomial (x + α¹)(x + α²)…(x + α^parity).
-   *
-   * The result is a big‑endian coefficient array of length `parity + 1`.
-   */
-  private buildGenerator(parity: number): Uint8Array {
-
-    // Start with (x + α¹) → coefficients [1, 1] (α¹ == 1)
-    let gen = Uint8Array.of(1, 1);
-
-    for (let i = 2; i <= parity; i++) {
-      // Multiply current generator by (x + α^i)
-      const next = new Uint8Array(gen.length + 1);
-      // Shift left (multiply by x)
-      for (let j = 0; j < gen.length; j++) {
-        next[j] ^= gen[j]; // coefficient of x^{k+1}
-      }
-      // Add α^i * gen
-      const factor = EXP_TABLE[i]; // α^i
-      for (let j = 0; j < gen.length; j++) {
-        next[j + 1] ^= gfMul(gen[j], factor);
-      }
-      gen = next;
-    }
-    return gen;
-  }
-
-  /**
-   * Compute `msgPoly mod generatorPoly`.  Both arguments are big‑endian.
-   */
-  private modulo(msgPoly: Uint8Array): Uint8Array {
-    const gen = this.generatorPoly;
-    const remainder = Uint8Array.from(msgPoly); // copy
-    const genDegree = gen.length - 1;
-
-    for (let i = 0; i <= remainder.length - gen.length; i++) {
-      const coef = remainder[i];
-      if (coef === 0) continue;
-      for (let j = 1; j < gen.length; j++) {
-        if (gen[j] !== 0) {
-          remainder[i + j] ^= gfMul(gen[j], coef);
-        }
-      }
-    }
-    // Return the low‑order part (the actual parity bytes).
-    return remainder.subarray(remainder.length - genDegree);
-  }
-
-  /**
-   * Compute the syndrome vector S₁…S_{parityBytes}.
-   *
-   * Each syndrome is the evaluation of the received polynomial at α^i.
-   */
-  private computeSyndromes(block: Uint8Array): Uint8Array {
-    const synd = new Uint8Array(this.parityBytes);
-
-    for (let i = 0; i < this.parityBytes; i++) {
-      const evalPoint = EXP_TABLE[i + 1]; // α^{i+1}
-      let sum = 0;
-      for (let j = 0; j < block.length; j++) {
-        if (block[j] !== 0) {
-          // exponent = (i+1)*(len-1-j)  (mod 255)
-          const exp = ((i + 1) * (block.length - 1 - j)) % 255;
-          sum ^= gfMul(block[j], EXP_TABLE[exp]);
-        }
-      }
-      synd[i] = sum;
-    }
-    return synd;
-  }
-
-  /**
-   * Locate error positions using Chien search.
-   *
-   * Returns an array of indices (0‑based, from the start of the block)
-   * where errors occurred.
-   */
-  private findErrorLocations(errorLocator: Uint8Array): number[] {
-    const positions: number[] = [];
-
-    // errorLocator is big‑endian: σ(x) = σ₀·x^d + … + σ_d
-    const degree = errorLocator.length - 1;
-
-    for (let i = 0; i < this.n; i++) {
-      // Evaluate σ(α^{-i}) – we use the fact that α^{255-i} = α^{-i}
-      let sum = 0;
-      for (let j = 0; j <= degree; j++) {
-        const coeff = errorLocator[j];
-        if (coeff === 0) continue;
-        const power = ((255 - i) * (degree - j)) % 255;
-        sum ^= gfMul(coeff, EXP_TABLE[power]);
-      }
-      if (sum === 0) {
-        // Position i is an error (note: i counts from the leftmost symbol)
-        positions.push(i);
-      }
+    // 3️⃣ Locate error positions (Chien search).
+    const errPos = locateErrors(lambda, this.n);
+    if (errPos.length === 0) {
+      throw new Error("Unable to locate errors – block may be beyond correction capacity");
     }
 
-    return positions;
+    // 4️⃣ Correct the errors using Forney.
+    correctErrors(block, syndromes, lambda, errPos);
+
+    // 5️⃣ Verify that correction succeeded (re‑compute syndromes).
+    const postSynd = computeSyndromes(block, parityBytes);
+    if (postSynd.some((v) => v !== 0)) {
+      throw new Error("Unrecoverable errors remain after correction");
+    }
+
+    // Return the original payload (strip parity).
+    return block.subarray(0, dataLen);
   }
 }
