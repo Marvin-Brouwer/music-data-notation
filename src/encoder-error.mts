@@ -28,7 +28,7 @@ export class EncoderError extends Error {
    */
   protected constructor(message: string, innerError?: Error | string | unknown | undefined) {
     super(message);
-    this.name = 'DecodingError';
+    this.name = 'EncoderError';
     if (innerError instanceof Error)
       this.innerError = innerError;
     else if (typeof innerError === 'string')

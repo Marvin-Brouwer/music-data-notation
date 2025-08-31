@@ -130,12 +130,12 @@ export function fixedLengthEncoder(config: FixedLengthEncoderConfig) {
   /**
    * Encode a plain‑text string into a fixed‑length token.
    *
-   * @param plainText Input string.
+   * @param data Input string.
    * @returns Promise that resolves to an {@link EncodeResult}.
    */
-  async function encode(plainText: string): Promise<EncodeResult> {
+  async function encode(data: string): Promise<EncodeResult> {
 
-    const hashBytes = new Uint8Array(sha256.arrayBuffer(plainText));
+    const hashBytes = new Uint8Array(sha256.arrayBuffer(data));
 
     // 2️⃣  Append parity using functional RS helper
     const rsBlock = rs.encode(hashBytes, outputLength, paritySymbolCount); // length = 32 + paritySymbolCount

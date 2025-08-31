@@ -20,20 +20,23 @@ import { ReedSolomonEncoderError } from './reed-solomon.error.mts';
  */
 export function encode(
   payload: Uint8Array,
-  totalLength: number,
+  blockLength: number,
   parityBytes: number
 ): Uint8Array | EncoderError {
   
-  if (totalLength <= 0 || totalLength > 255) 
+  if (payload.length <= parityBytes) 
+    return ReedSolomonEncoderError.forTotalLength();
+  if (blockLength <= parityBytes) 
     return ReedSolomonEncoderError.forTotalLength();
   if (parityBytes <= 0)  
     return ReedSolomonEncoderError.forIncorrectParityBytes();
-  if (payload.length + parityBytes !== totalLength)
-    return ReedSolomonEncoderError.forBlockLengthMismatch(payload.length + parityBytes, totalLength);
+  const minimumBlockLength = payload.length + parityBytes;
+  if (blockLength < minimumBlockLength)  
+    return ReedSolomonEncoderError.forBlockLengthMismatch(blockLength, minimumBlockLength);
 
   // ---------- create a fresh codec instance ----------
   // The ERC‑JS constructor expects the *total* block length.
-  const rs = new ReedSolomon(totalLength);
+  const rs = new ReedSolomon(blockLength);
 
   // ---------- encode ----------
   try {
@@ -47,7 +50,7 @@ export function encode(
  * Decode a Reed‑Solomon block back to the original payload.
  *
  * @param block        Uint8Array that was produced by `encode`. Its length must be `totalLength`.
- * @param totalLength  The total block size that was used during encoding.
+ * @param blockLength  The total block size that was used during encoding.
  * @param parityBytes  Number of parity symbols that were added during encoding.
  * @returns            Uint8Array containing the original payload (length = totalLength - parityBytes).
  *
@@ -56,26 +59,24 @@ export function encode(
  */
 export function decode(
   block: Uint8Array,
-  totalLength: number,
+  blockLength: number,
   parityBytes: number
 ): Uint8Array | EncoderError {
 
-  if (totalLength <= 0 || totalLength > 255) 
+  if (blockLength <= 0 || blockLength > 255) 
     return ReedSolomonEncoderError.forTotalLength();
   if (parityBytes <= 0)  
     return ReedSolomonEncoderError.forIncorrectParityBytes();
-  if (block.length !== totalLength)
-    return ReedSolomonEncoderError.forBlockLengthMismatch(block.length, totalLength);
-
+  
   // ---------- create a fresh codec instance ----------
-  const rs = new ReedSolomon(totalLength);
+  const rs = new ReedSolomon(blockLength);
 
   // ---------- decode ----------
   try {
     // `rs.decode` already strips the parity bytes and returns only the data part.
     const payload = rs.decode(block);
     // As a safety net, ensure the payload length matches what we expect.
-    const expectedPayloadLen = totalLength - parityBytes;
+    const expectedPayloadLen = blockLength - parityBytes;
     if (payload.length !== expectedPayloadLen) {
     return ReedSolomonEncoderError.forPayloadLengthMismatch(payload.length, expectedPayloadLen);
     }
