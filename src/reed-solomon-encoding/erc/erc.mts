@@ -36,6 +36,25 @@ export class ReedSolomon {
      * @returns Uint8Array containing only the original data bytes.
      */
     decode(data: Uint8Array): Uint8Array {
-       return this.decoder.decode(data);
+        const blockLen = 255;
+        const blocks: Uint8Array[] = [];
+
+        for (let i = 0; i < data.length; i += blockLen) {
+            const block = data.subarray(i, i + blockLen);
+            blocks.push(this.decoder.decode(block));
+        }
+
+        // Concatenate all data blocks
+        const totalLen = blocks.reduce((acc, b) => acc + b.length, 0);
+        const out = new Uint8Array(totalLen);
+
+        let offset = 0;
+        for (const b of blocks) {
+            out.set(b, offset);
+            offset += b.length;
+        }
+
+        return out;
     }
+
 }

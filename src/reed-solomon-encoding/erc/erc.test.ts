@@ -1,6 +1,5 @@
 import { describe, test, expect } from 'vitest';
 import { ReedSolomon } from './erc.mts';
-import { ReedSolomon as OldReedSolomon } from './erc-working.mjs';
 import { repeat, streamToString, stringToStream } from './test-helpers';
 
 
@@ -66,20 +65,6 @@ describe('reed-solomon-encoding', function () {
     
   });
   
-  test('OLD works with long input', function () {
-    
-    const input = repeat(300, 'Some very long string+')
-    const rs = new OldReedSolomon(10);
-    const enc = rs.encode(input);
-    
-    expect(rs.decode(enc)).toEqual(input);
-
-    enc[177] = 99;
-    enc[2212] = 88;
-    
-    expect(rs.decode(enc)).toEqual(input);
-    
-  })
   test('should work with long input', function () {
     
     const input = repeat(300, 'Some very long string+')

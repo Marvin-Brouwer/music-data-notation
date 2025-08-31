@@ -17,14 +17,34 @@ export class ReedSolomonEncoder {
      * @returns Uint8Array containing data + parity (length is a multiple of 255).
      */
     encode(data: Uint8Array): Uint8Array {
-        const msg = new Uint8Array(data.length + this.nSym);
-        msg.set(data);                       // copy data into front
-        // Append nSym zeroes (already zero‑filled by Uint8Array ctor)
-        const remainder = this._calcRemainder(msg);
-        // Replace the zero padding with the actual parity bytes
-        msg.set(remainder, data.length);
-        return msg;
+        const blockDataLen = 255 - this.nSym;
+        const blocks: Uint8Array[] = [];
+
+        for (let i = 0; i < data.length; i += blockDataLen) {
+            const chunk = data.subarray(i, i + blockDataLen);
+
+            const msg = new Uint8Array(chunk.length + this.nSym);
+            msg.set(chunk);
+
+            const remainder = this._calcRemainder(msg);
+            msg.set(remainder, chunk.length);
+
+            blocks.push(msg);
+        }
+
+        // Concatenate all blocks into one Uint8Array
+        const totalLen = blocks.reduce((acc, b) => acc + b.length, 0);
+        const out = new Uint8Array(totalLen);
+
+        let offset = 0;
+        for (const b of blocks) {
+            out.set(b, offset);
+            offset += b.length;
+        }
+
+        return out;
     }
+
 
     /** Compute the remainder of msg(x) / generator(x) */
     _calcRemainder(msg: Uint8Array) {
