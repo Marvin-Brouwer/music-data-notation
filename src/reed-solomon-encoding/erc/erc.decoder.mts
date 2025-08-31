@@ -42,16 +42,16 @@ export class ReedSolomonDecoder {
 
     _correctErrorValues(codeword: Uint8Array, synd: Uint8Array, errPos: number[]) {
         // 1️⃣ Compute the error locator polynomial q(x) = ∏ (1 - x_i * x)
-        var q = new Uint8Array([1]) as Uint8Array<ArrayBufferLike>;
-        for (var i = 0; i < errPos.length; i++) {
+        let q = new Uint8Array([1]) as Uint8Array<ArrayBufferLike>;
+        for (let i = 0; i < errPos.length; i++) {
             // x = α^{position from right}
-            var x = EXP_TABLE[codeword.length - 1 - errPos[i]];
+            const x = EXP_TABLE[codeword.length - 1 - errPos[i]];
             q = poly.mul(q, new Uint8Array([x, 1]));  // multiply q by (x_i, 1)
         }
 
         // 2️⃣ Compute the error evaluator polynomial p(x) = [syndromes * q(x)] mod x^{errCount}
         // Take syndromes of length errCount, reverse for proper poly order
-        var p = synd.slice(0, errPos.length) as Uint8Array<ArrayBufferLike>;
+        let p = synd.slice(0, errPos.length) as Uint8Array<ArrayBufferLike>;
         p.reverse();
         p = poly.mul(p, q);
         // Truncate p to last errCount coefficients (mod x^errCount)
@@ -61,14 +61,13 @@ export class ReedSolomonDecoder {
         q = poly.sliceStep(q, q.length & 1, q.length, 2);
 
         // 4️⃣ Calculate error magnitudes and correct the codeword
-        for (var i = 0; i < errPos.length; i++) {
+        for (let i = 0; i < errPos.length; i++) {
             // Evaluate at x = α^{position from left}
-            var x = EXP_TABLE[errPos[i] + 256 - codeword.length];
-            var y = poly.eval(p, x);           // Evaluate p(x)
-            var z = poly.eval(q, gf.mul(x, x)); // Evaluate q'(x^2)
+            const x = EXP_TABLE[errPos[i] + 256 - codeword.length];
+            const y = poly.eval(p, x);           // Evaluate p(x)
+            const z = poly.eval(q, gf.mul(x, x)); // Evaluate q'(x^2)
 
-            var magnitude = gf.div(y, gf.mul(x, z)); // Compute error magnitude
-            console.log(`errval-new[${errPos[i]}] =`, magnitude);
+            const magnitude = gf.div(y, gf.mul(x, z)); // Compute error magnitude
 
             // Correct the error in the codeword by XORing the magnitude
             codeword[errPos[i]] ^= magnitude;

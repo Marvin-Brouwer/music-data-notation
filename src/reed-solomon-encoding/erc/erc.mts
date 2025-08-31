@@ -4,8 +4,6 @@
 
 import { ReedSolomonDecoder } from "./erc.decoder.mts";
 import { ReedSolomonEncoder } from "./erc.encoder.mts";
-import gf from "./gf256.mts";
-import poly from "./polynomial.mts";
 
 export class ReedSolomon {
 
@@ -17,19 +15,8 @@ export class ReedSolomon {
         if (nSym <= 0 || nSym % 2 !== 0) {
             throw new Error('nSym must be a positive even integer');
         }
-        const generator = this._genGeneratorPoly(nSym);
-        this.encoder = new ReedSolomonEncoder(nSym, generator);
+        this.encoder = new ReedSolomonEncoder(nSym);
         this.decoder = new ReedSolomonDecoder(nSym);
-    }
-
-    _genGeneratorPoly(nSym: number) {
-        let gen = new Uint8Array([1]); // start with 1
-        for (let i = 0; i < nSym; i++) {
-            // (x - α^{i+1})  → coefficients: [1, α^{i+1}]
-            const term = new Uint8Array([1, gf.pow(2, i)]); // α = 2 in GF(256)
-            gen = poly.mul(gen, term);
-        }
-        return gen; // Uint8Array, highest degree first
     }
 
     /**

@@ -15,7 +15,7 @@ import gf from "./gf256.mts";
  * @param k      Scalar to multiply with
  * @param shift  Power of x to multiply (default 0)
  */
-function scale(poly: Uint8Array, k: number, shift = 0): Uint8Array {
+function scale(poly: Uint8Array, k: number, shift = 0): Uint8Array<ArrayBuffer> {
     const out = new Uint8Array(poly.length + shift);
     for (let i = 0; i < poly.length; i++) {
         out[i] = gf.mul(poly[i], k);
@@ -27,7 +27,7 @@ function scale(poly: Uint8Array, k: number, shift = 0): Uint8Array {
  * Add (XOR) two polynomials, returns a new polynomial.
  * Both inputs are assumed to be MSB-first.
  */
-function add(a: Uint8Array, b: Uint8Array): Uint8Array {
+function add(a: Uint8Array, b: Uint8Array): Uint8Array<ArrayBuffer> {
     const maxLen = Math.max(a.length, b.length);
     const out = new Uint8Array(maxLen);
 
@@ -49,7 +49,7 @@ function add(a: Uint8Array, b: Uint8Array): Uint8Array {
  * Multiply two polynomials (convolution) in GF(256), returns a new polynomial.
  * Both inputs must be MSB-first.
  */
-function mul(a: Uint8Array, b: Uint8Array): Uint8Array {
+function mul(a: Uint8Array, b: Uint8Array): Uint8Array<ArrayBuffer> {
     const result = new Uint8Array(a.length + b.length - 1);
 
     for (let i = 0; i < a.length; i++) {
@@ -80,7 +80,7 @@ function evalAt(poly: Uint8Array, x: number): number {
  * @param poly  Polynomial in MSB-first order
  * @param k     Number of x-multiplies (defaults to 1)
  */
-function shiftLeft(poly: Uint8Array, k = 1): Uint8Array {
+function shiftLeft(poly: Uint8Array, k = 1): Uint8Array<ArrayBuffer> {
     if (k <= 0) return poly.slice(); // no-op
     const out = new Uint8Array(poly.length + k);
     out.set(poly, 0);  // same MSB-first order, just add trailing 0s
@@ -90,7 +90,7 @@ function shiftLeft(poly: Uint8Array, k = 1): Uint8Array {
 /**
  * Strip leading zero coefficients.
  */
-function trim(poly: Uint8Array): Uint8Array {
+function trim(poly: Uint8Array): Uint8Array<ArrayBuffer> {
     let firstNonZero = 0;
     while (firstNonZero < poly.length && poly[firstNonZero] === 0) {
         firstNonZero++;
@@ -98,12 +98,22 @@ function trim(poly: Uint8Array): Uint8Array {
     return poly.slice(firstNonZero);
 }
 
-function sliceStep(poly: Uint8Array, start: number, end: number, step: number): Uint8Array {
+function sliceStep(poly: Uint8Array, start: number, end: number, step: number): Uint8Array<ArrayBuffer> {
     const result: number[] = [];
     for (let i = start; i < end; i += step) {
         result.push(poly[i]);
     }
     return new Uint8Array(result);
+}
+
+function createGenerator(nSym: number) {
+    let gen = new Uint8Array([1]); // start with 1
+    for (let i = 0; i < nSym; i++) {
+        // (x - α^{i+1})  → coefficients: [1, α^{i+1}]
+        const term = new Uint8Array([1, gf.pow(2, i)]); // α = 2 in GF(256)
+        gen = mul(gen, term);
+    }
+    return gen; // Uint8Array, highest degree first
 }
 
 /**
@@ -131,5 +141,6 @@ export default {
     shiftLeft,
     trim,
     sliceStep,
+    createGenerator,
     toString,
 };

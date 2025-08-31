@@ -4,7 +4,7 @@
 // ---------------------------------------------------------------
 
 import type { EncoderError } from '../encoder-error.mts';
-import ReedSolomon from './erc/erc_.mjs';
+import { ReedSolomon } from './erc/erc.mts';
 import { ReedSolomonEncoderError } from './reed-solomon.error.mts';
 
 /**

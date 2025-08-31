@@ -1,16 +1,13 @@
 import gf from "./gf256.mts";
+import poly from "./polynomial.mts";
 
 export class ReedSolomonEncoder {
     private readonly nSym: number;
     private readonly generator: Uint8Array;
 
-    /** nSym defaults to 10 parity symbols if omitted. */
-    constructor(nSym: number, generator: Uint8Array) {
-        if (nSym <= 0 || nSym % 2 !== 0) {
-            throw new Error('nSym must be a positive even integer');
-        }
+    constructor(nSym: number) {
         this.nSym = nSym;
-        this.generator = generator;
+        this.generator = poly.createGenerator(nSym);
     }
 
     /**
@@ -20,7 +17,6 @@ export class ReedSolomonEncoder {
      * @returns Uint8Array containing data + parity (length is a multiple of 255).
      */
     encode(data: Uint8Array): Uint8Array {
-        console.log('data', data)
         const msg = new Uint8Array(data.length + this.nSym);
         msg.set(data);                       // copy data into front
         // Append nSym zeroes (already zero‑filled by Uint8Array ctor)

@@ -49,7 +49,7 @@ export const Utils = {
     return chars.join('');
   },
 
-  unpack: function (str) {
+  unpack: function (str: string) {
     var bytes = [];
 
     for (var i = 0, n = str.length; i < n; i++) {
@@ -216,7 +216,6 @@ class Codec {
       var z = this.gf.polyEval(q, this.gf.mul(x, x));
       // msg[pos[i]] ^= this.gf.div(y, this.gf.mul(x, z));
       var magnitude = this.gf.div(y, this.gf.mul(x, z));
-      console.log(`errval-old[${pos[i]}] =`, magnitude);
       msg[pos[i]] ^= magnitude;
     }
 
@@ -300,7 +299,6 @@ class Codec {
     var synd = this.calcSyndromes(msgOut, nSym);
 
     if (Math.max.apply(null, synd) == 0) {
-      console.log('nothing', synd)
       return msgOut.slice(0, msgOut.length - nSym);
     }
 
@@ -309,9 +307,6 @@ class Codec {
 
     if (errPos == null) throw 'Could not locate error';
 
-    console.log('correctErrata', msgOut,
-      synd,
-      erasePos.concat(errPos))
     msgOut = this.correctErrata(
       msgOut,
       synd,

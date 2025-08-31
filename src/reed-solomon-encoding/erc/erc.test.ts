@@ -1,11 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import { ReedSolomon } from './erc.mts';
-import { ReedSolomon as ReedSolomonWorking } from './erc-working.mjs';
+import { ReedSolomon as OldReedSolomon } from './erc-working.mjs';
 import { repeat, streamToString, stringToStream } from './test-helpers';
 
 
-
-describe('RSCodec', function () {
+describe('reed-solomon-encoding', function () {
   
   test('should encode/decode properly', function () {
     
@@ -45,36 +44,55 @@ describe('RSCodec', function () {
       40, 171, 40, 207, 45, 222, 68, 85, 45, 171
     ]);
     
+    // Sanity-check
     expect(streamToString(rs.decode(enc))).toEqual(repeat(10, 'hello world '));
-    // expect(rs.decode(enc)).toEqual(repeat(10, 'hello world '));
 
+    // Error correction should work
     enc[27] = 99;
+    enc[enc.length - 4] = 99;
+    enc[enc.length - 10] = 99;
+    enc[7] = 99;
+    enc[82] = 99; 
     expect(streamToString(rs.decode(enc))).toEqual(repeat(10, 'hello world '));
     
-    // enc[82] = 99; enc[83] = 99; enc[84] = 99;
-  
-    // expect(function () { rs.decode(enc) }).toThrow();
+    // Make it uncorrectable
+    enc[83] = 99; 
+    enc[84] = 99; 
+    enc[85] = 99; 
+    enc[86] = 99; 
+    enc[87] = 99; 
+    enc[88] = 99; 
+    expect(function () { rs.decode(enc) }).toThrow();
     
   });
   
-  test('should work with long input', function () {
+  test('OLD works with long input', function () {
     
-    const input = stringToStream(repeat(10000, 'a'))
-    const rs = new ReedSolomon(10);
-    const rsw = new ReedSolomonWorking(10);
+    const input = repeat(300, 'Some very long string+')
+    const rs = new OldReedSolomon(10);
     const enc = rs.encode(input);
-    const encw = rsw.encode(repeat(10000, 'a'));
     
-    expect(streamToString(rs.decode(enc))).toEqual(repeat(10000, 'a'));
-    expect(rsw.decode(encw)).toEqual(repeat(10000, 'a'))
+    expect(rs.decode(enc)).toEqual(input);
 
     enc[177] = 99;
     enc[2212] = 88;
-    // encw[177] = 99;
-    // encw[2212] = 88;
     
-    // expect(streamToString(rs.decode(enc))).toEqual(repeat(10000, 'a'));
-    expect(rsw.decode(encw)).toEqual(repeat(10000, 'a'))
+    expect(rs.decode(enc)).toEqual(input);
+    
+  })
+  test('should work with long input', function () {
+    
+    const input = repeat(300, 'Some very long string+')
+    const inputStream = stringToStream(input)
+    const rs = new ReedSolomon(10);
+    const enc = rs.encode(inputStream);
+    
+    expect(streamToString(rs.decode(enc))).toEqual(input);
+
+    enc[177] = 99;
+    enc[2212] = 88;
+    
+    expect(streamToString(rs.decode(enc))).toEqual(input);
     
   })
 
