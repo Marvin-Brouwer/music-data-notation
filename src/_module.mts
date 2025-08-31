@@ -1,1 +1,1 @@
-export * from './fixed-length-encoding/fixed-length-encoder.mts';
+export * from './fixed-length-encoding_old/fixed-length-encoder.mts';
