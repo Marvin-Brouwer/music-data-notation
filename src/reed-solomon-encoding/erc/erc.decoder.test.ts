@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { ReedSolomonDecoder } from "./erc.decoder.mts";
-import { streamToString } from './test-helpers';
+import { streamToString } from '../../test-helpers';
 
 describe('decoder', function () {
 

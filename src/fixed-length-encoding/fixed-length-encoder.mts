@@ -1,6 +1,6 @@
 import type { EncoderError } from "../encoder-error.mts";
 import { packBaseN, unpackBaseN } from "./base-n";
-import { FixedLengthEncoderError } from "./fixed-length-encoding.error";
+import { FixedLengthEncoderError } from "./fixed-length-encoder.error";
 
 export type FixedLengthEncoderOptions = {
     tokenList: string[],

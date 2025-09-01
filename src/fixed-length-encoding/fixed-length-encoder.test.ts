@@ -1,6 +1,6 @@
 import { describe, it, expect, test } from "vitest";
-import { fixedLengthEncoder, type FixedLengthEncoderOptions } from "./fixed-length-encoding.mts"; // adj
-import { stringToStream, streamToString } from '../reed-solomon-encoding/erc/test-helpers';
+import { fixedLengthEncoder, type FixedLengthEncoderOptions } from "./fixed-length-encoder.mts"; // adj
+import { stringToStream, streamToString } from '../test-helpers';
 import { isEncoderError } from "../encoder-error.mts";
 
 describe("Encoder/Decoder roundtrip", () => {

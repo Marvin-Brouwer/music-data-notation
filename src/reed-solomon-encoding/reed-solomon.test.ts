@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 
 import rs from './reed-solomon.mts';
 import { isEncoderError } from '../encoder-error.mts';
-import { stringToStream } from './erc/test-helpers';
+import { stringToStream } from '../test-helpers';
 import type { ReedSolomonEncoderError } from './reed-solomon.error.mts';
 
 describe('reed‑solomon wrapper (erc‑js based)', () => {

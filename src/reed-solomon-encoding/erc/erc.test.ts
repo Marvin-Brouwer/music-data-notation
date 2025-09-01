@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { ReedSolomon } from './erc.mts';
-import { repeat, streamToString, stringToStream } from './test-helpers';
+import { repeat, streamToString, stringToStream } from '../../test-helpers';
 
 
 describe('reed-solomon-encoding', function () {

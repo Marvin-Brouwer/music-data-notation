@@ -1,0 +1,1 @@
+export type TokenList = ReadonlyArray<string>;

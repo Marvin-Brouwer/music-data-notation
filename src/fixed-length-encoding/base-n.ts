@@ -1,4 +1,6 @@
-export function packBaseN(bytes: Uint8Array, tokenList: string[], outputLength: number): string[] {
+import type { TokenList } from "./token-list";
+
+export function packBaseN(bytes: Uint8Array, tokenList: TokenList, outputLength: number): string[] {
   const base = BigInt(tokenList.length);
 
   // Convert bytes → BigInt
@@ -22,7 +24,7 @@ export function packBaseN(bytes: Uint8Array, tokenList: string[], outputLength: 
   return digits.map(d => tokenList[d]);
 }
 
-export function unpackBaseN(tokens: string[], tokenList: string[]): Uint8Array {
+export function unpackBaseN(tokens: string[], tokenList: TokenList): Uint8Array {
   const base = BigInt(tokenList.length);
 
   // Convert tokens → digits

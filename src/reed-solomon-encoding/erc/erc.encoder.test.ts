@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { ReedSolomon } from './erc.mts';
-import { repeat, stringToStream } from './test-helpers';
+import { repeat, stringToStream } from '../../test-helpers';
 
 
 
