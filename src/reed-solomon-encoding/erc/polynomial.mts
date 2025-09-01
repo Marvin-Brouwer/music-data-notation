@@ -106,7 +106,7 @@ function sliceStep(poly: Uint8Array, start: number, end: number, step: number): 
     return new Uint8Array(result);
 }
 
-function createGenerator(nSym: number) {
+function createGeneratorTable(nSym: number) {
     let gen = new Uint8Array([1]); // start with 1
     for (let i = 0; i < nSym; i++) {
         // (x - α^{i+1})  → coefficients: [1, α^{i+1}]
@@ -116,6 +116,28 @@ function createGenerator(nSym: number) {
     return gen; // Uint8Array, highest degree first
 }
 
+function createGenerator(nSym: number) {
+
+    const generatorTable = createGeneratorTable(nSym);
+
+    /** Compute the remainder of msg(x) / generator(x) */
+    return function calcRemainder(msg: Uint8Array) {
+        // Work on a copy because we will modify it in‑place
+        const buffer = new Uint8Array(msg);
+
+        for (let i = 0; i < msg.length - nSym; i++) {
+            const coefficient = buffer[i];
+            if (coefficient !== 0) {
+                // buffer[i + j] ^= gen[j] * coefficient  (for j = 1..gen.length-1)
+                for (let j = 1; j < generatorTable.length; j++) {
+                    buffer[i + j] ^= gf.mul(generatorTable[j], coefficient);
+                }
+            }
+        }
+        // The remainder occupies the last nSym positions
+        return buffer.subarray(buffer.length - nSym);
+    }
+}
 /**
  * Pretty print for debugging
  */
@@ -123,12 +145,12 @@ function toString(poly: Uint8Array): string {
     const terms = [];
     const deg = poly.length - 1;
     for (let i = 0; i < poly.length; i++) {
-        const coeff = poly[i];
-        if (coeff === 0) continue;
+        const coefficient = poly[i];
+        if (coefficient === 0) continue;
         const power = deg - i;
-        if (power === 0) terms.push(`${coeff}`);
-        else if (power === 1) terms.push(`${coeff}x`);
-        else terms.push(`${coeff}x^${power}`);
+        if (power === 0) terms.push(`${coefficient}`);
+        else if (power === 1) terms.push(`${coefficient}x`);
+        else terms.push(`${coefficient}x^${power}`);
     }
     return terms.length ? terms.join(" + ") : "0";
 }

@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { ReedSolomon } from './erc.mts';
 import { repeat, stringToStream } from '../../test-helpers';
+import { createEncoder } from './encoder.mts';
 
 
 
@@ -10,7 +10,7 @@ describe('encoder', function () {
     
     // ARRANGE
     const input = stringToStream('hello world')
-    const sut = new ReedSolomon(10);
+    const sut = createEncoder(10);
 
     // ACT
     const enc = sut.encode(input);
@@ -26,7 +26,7 @@ describe('encoder', function () {
   test('should work with long input', function () {
     
     const input = stringToStream(repeat(10000, 'a'))
-    const sut = new ReedSolomon(10);
+    const sut = createEncoder(10);
 
     // ACT
     const enc = () => sut.encode(input);
