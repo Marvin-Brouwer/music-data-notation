@@ -1,12 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, test } from "vitest";
 import { fixedLengthEncoder, type FixedLengthEncoderOptions } from "./fixed-length-encoding.mts"; // adj
 import { stringToStream, streamToString } from '../reed-solomon-encoding/erc/test-helpers';
+import { isEncoderError } from "../encoder-error.mts";
 
 describe("Encoder/Decoder roundtrip", () => {
 
     const outputLength = 20;
 
-    const shortListOptions: FixedLengthEncoderOptions ={
+    const shortListOptions: FixedLengthEncoderOptions = {
         outputLength,
         tokenList: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('') // length 62
     };
@@ -109,23 +110,55 @@ describe("Encoder/Decoder roundtrip", () => {
         // check roundtrip value
         expect(streamToString(decoded)).toBe(longInput);
     });
+
+    describe('encodeBytes', () => {
+        test('tooLongInput returns Error', () => {
+            // Arrange
+            const inputStream = stringToStream('This is more than 35 characters long, and it is too much!');
+            const sut = fixedLengthEncoder(shortListOptions);
+
+            // ACT
+            const result = sut.encodeBytes(inputStream);
+
+            // Assert
+            expect(isEncoderError(result)).toBeTruthy();
+        })
+    });
+
+    describe('calcMaxInputLength', () => {
+        test("returns correct length", () => {
+
+            // ARRANGE
+            const inputStream = stringToStream('13 characters');
+            const sutShort = fixedLengthEncoder(shortListOptions);
+            const sutLong = fixedLengthEncoder(longListOptions);
+
+            // ACT
+            const resultShort = sutShort.calcMaxInputLength(inputStream);
+            const resultLong = sutLong.calcMaxInputLength(inputStream);
+
+            // ASSERT
+            expect(resultShort).toBe(35);
+            expect(resultLong).toBe(48);
+        });
+    });
 });
 
 /**
  * Build tokenList of length 255 (all byte values except one, for example)
  */
 function generateSafeTokenList(): string[] {
-  const tokens: string[] = [];
+    const tokens: string[] = [];
 
-  // 1. Printable ASCII: space (32) → tilde (126)
-  for (let i = 32; i <= 126; i++) {
-    tokens.push(String.fromCharCode(i));
-  }
+    // 1. Printable ASCII: space (32) → tilde (126)
+    for (let i = 32; i <= 126; i++) {
+        tokens.push(String.fromCharCode(i));
+    }
 
-  // 2. Extended Latin-1: 160 → 255
-  for (let i = 160; tokens.length < 255; i++) {
-    tokens.push(String.fromCharCode(i));
-  }
+    // 2. Extended Latin-1: 160 → 255
+    for (let i = 160; tokens.length < 255; i++) {
+        tokens.push(String.fromCharCode(i));
+    }
 
-  return tokens;
+    return tokens;
 }

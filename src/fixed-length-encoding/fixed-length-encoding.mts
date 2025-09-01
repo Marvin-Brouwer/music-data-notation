@@ -1,4 +1,6 @@
+import type { EncoderError } from "../encoder-error.mts";
 import { packBaseN, unpackBaseN } from "./base-n";
+import { FixedLengthEncoderError } from "./fixed-length-encoding.error";
 
 export type FixedLengthEncoderOptions = {
     tokenList: string[],
@@ -26,10 +28,11 @@ export function fixedLengthEncoder(options: FixedLengthEncoderOptions) {
 
     function encodeBytes(
         data: Uint8Array,
-    ): string[] {
+    ): string[] | EncoderError {
 
         const maxInputLength = calcMaxInputLength(data)
-        if (maxInputLength < data.length) throw 'todo error here! + test';
+        if (maxInputLength < data.length) 
+            return FixedLengthEncoderError.forPayloadLength(data.length, maxInputLength);
 
         if (tokenList.length >= 256) {
             // Direct mapping: pad/truncate to outputLength
