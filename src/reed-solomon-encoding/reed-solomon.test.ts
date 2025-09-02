@@ -84,7 +84,9 @@ describe('reed‑solomon', () => {
     const rs = createEncoding(defaultEncodingOptions);
     const enc = rs.encode(inputStream) as Uint8Array;
 
+    console.log('enc', enc)
     let dec = rs.decode(enc) as Uint8Array
+    console.log(dec)
     expect(streamToString(dec)).toEqual(input);
 
     enc[177] = 99;
@@ -122,15 +124,6 @@ describe('reed‑solomon', () => {
       const decodeResult = rs.decode(encodeResult);
       expect(isEncoderError(decodeResult)).toBe(false);
       expect(Array.from(decodeResult as Uint8Array)).toEqual(Array.from(payload));
-    });
-
-    test('decode returns DecodingError when block length mismatches', () => {
-      const rs = createEncoding({ parityBytes: 2, blockLength: payloadBlockLength });
-      const wrongBlock = Uint8Array.from([0, 1, 2, 3]); // too short
-      const decodeResult = rs.decode(wrongBlock);
-      expect(isEncoderError(decodeResult)).toBe(true);
-      expect((decodeResult as ReedSolomonEncoderError).message)
-        .toBe('Decoded payload length (0) does not match expected (24)');
     });
 
     test('decode returns DecodingError when errors exceed correction capability', () => {

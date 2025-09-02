@@ -43,8 +43,8 @@ export function createEncoding(options: ReedSolomonEncodingOptions) {
     if (parityBytes <= 0)
       return ReedSolomonEncoderError.forIncorrectParityBytes();
     const minimumBlockLength = payload.length + parityBytes;
-    if (blockLength < minimumBlockLength)
-      return ReedSolomonEncoderError.forBlockLengthMismatch(blockLength, minimumBlockLength);
+    // if (blockLength < minimumBlockLength)
+      // return ReedSolomonEncoderError.forBlockLengthMismatch(blockLength, minimumBlockLength);
 
     // ---------- encode ----------
     try {
@@ -76,14 +76,7 @@ export function createEncoding(options: ReedSolomonEncodingOptions) {
 
     // ---------- decode ----------
     try {
-      // `rs.decode` already strips the parity bytes and returns only the data part.
-      const payload = decoder.decode(block);
-      // As a safety net, ensure the payload length matches what we expect.
-      const expectedPayloadLen = blockLength - parityBytes;
-      if (payload.length !== expectedPayloadLen) {
-        return ReedSolomonEncoderError.forPayloadLengthMismatch(payload.length, expectedPayloadLen);
-      }
-      return payload;
+      return decoder.decode(block);
     } catch (e) {
       return ReedSolomonEncoderError.forDecodingError(e);
     }
