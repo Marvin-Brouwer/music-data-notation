@@ -16,6 +16,7 @@ const valueModifiers = [
 // When tuning standard, this is allowed
 export const NOTE_TOKEN_LIST: TokenList = rawNotes
         .flatMap(applyModifiers)
+        // TODO: either flatmap -> timings + xlets or we use timing as decorator
         .concat(unchangeableNotes)
 
 function applyModifiers(note: string) {
