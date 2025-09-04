@@ -1,19 +1,12 @@
 import { describe, test } from "vitest";
-import { VexTab as vt } from '../../git_modules/vextab/src/main';
-import { default as VexFlow, Flow } from 'vexflow';
-import { JSDOM } from 'jsdom';
+// import { VexTab as vt } from '../../git_modules/vextab/src/main';
+import { Stave, Renderer } from 'vexflow';
+import fs from 'node:fs';
 
-const dom = new JSDOM(`
-    <document>
-        <body>
-            <canvas />
-        </body>
-    </document>
-`, {
-    runScripts: "dangerously",
-    pretendToBeVisual: true,
-});
-const canvas = dom.window.document.getElementsByTagName('canvas')[0];
+const canvas = Object.assign(document.createElement('canvas'), {
+    width: 500,
+    height: 500
+})
 // const Vex = VexFlow.Flow.Vex;
 
 describe('generate tabs', () => {
@@ -21,20 +14,21 @@ describe('generate tabs', () => {
     test('all notes', async () => {
 
         // Create VexFlow Renderer from canvas element with id #boo
-        const renderer = new Flow.Renderer(canvas, Flow.Renderer.Backends.SVG);
+        const renderer = new Renderer(canvas, Renderer.Backends.CANVAS);
 
-        console.log(typeof vt);
-        console.log(vt);
-        console.log(Object.getOwnPropertyNames(vt));
-        // Initialize VexTab artist and parser.
-        const artist = new vt.Artist(10, 10, 600, { scale: 0.8 });
-        const tab = new vt.VexTab(artist);
+        renderer.resize(canvas.width, canvas.height);
+        const context = renderer.getContext();
 
-        try {
-            tab.parse('tabstave')
-            artist.render(renderer);
-        } catch (e) {
-            console.error(e);
-        }
+        // Create a stave of width 400 at position 10, 40.
+        const stave = new Stave(10, 40, 400);
+
+        // Add a clef and time signature.
+        stave.addClef('treble').addTimeSignature('4/4');
+
+        // Connect it to the rendering context and draw!
+        stave.setContext(context).draw();
+
+        const imageBytes = canvas.toDataURL()
+       fs.writeFileSync(__dirname+'/tab-notes.test.example.png', imageBytes.substring(imageBytes.indexOf(',')+1), {encoding: 'base64'})
     })
 })
