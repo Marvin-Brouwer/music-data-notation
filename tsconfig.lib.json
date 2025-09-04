@@ -6,6 +6,7 @@
     "useDefineForClassFields": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    "allowJs": true,
     "lib": ["ES2024.ArrayBuffer", "ES2017.TypedArrays", "ES2024", "DOM"],
     "types": ["vite/client"],
 
