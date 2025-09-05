@@ -24,7 +24,6 @@ describe('generate tabs', () => {
 
     test('all notes', async () => {
 
-        const linePosition = 4;
         const notes = [
             new StaveNote({ keys: ["c/4"], duration: "8" }),
             new StaveNote({ keys: ["c/4"], duration: "8" }),
@@ -44,10 +43,16 @@ describe('generate tabs', () => {
             new StaveNote({ keys: ["d/4"], duration: "q" }),
             new StaveNote({ keys: ["b/4"], duration: "qr" }),
         ]
-        const imageBytes = generateExample(linePosition, notes);
+        const imageBytes = generateExample(4, notes);
+        cvContext.clear()
+        cvContext.fillStyle = 'white';
+        cvContext.fillRect(0, 0, canvas.width, canvas.height)
+        cvContext.save();
+        const imageBytes2 = generateExample(0, notes);
 
 
         fs.writeFileSync(__dirname + '/tab-notes.test.example.png', imageBytes.substring(imageBytes.indexOf(',') + 1), { encoding: 'base64' })
+        fs.writeFileSync(__dirname + '/tab-notes.test.example-nobar.png', imageBytes2.substring(imageBytes.indexOf(',') + 1), { encoding: 'base64' })
     })
 })
 
@@ -67,7 +72,12 @@ function generateExample(linePosition: number, notes: StaveNote[]) {
     const context = renderer.getContext();
     context.setFillStyle('black');
 
-    const clefStave = new Stave(STAVE_MARGIN, 0, CLEF_STAVE_WIDTH);
+    const clefStave = new Stave(
+        STAVE_MARGIN,
+        0,
+        linePosition > 0
+            ? CLEF_STAVE_WIDTH
+            : CLEF_STAVE_WIDTH + STAVE_MARGIN);
 
     const errorStaveWidth = NOTE_WIDTH * linePosition;
     const errorStave = new Stave(
@@ -84,21 +94,26 @@ function generateExample(linePosition: number, notes: StaveNote[]) {
         .addClef('treble')
         .addTimeSignature('4/4')
         .setEndBarType(BarlineType.NONE);
-
     errorStave
         .setBegBarType(BarlineType.NONE);
     dataStave
+        .setBegBarType(BarlineType.NONE)
         .setEndBarType(BarlineType.END)
 
     // Connect it to the rendering context and draw!
     clefStave.setContext(context).draw();
-    errorStave.setContext(context).draw();
     dataStave.setContext(context).draw();
 
-    const errorNotes = notes.slice(0, linePosition);
-    Formatter.FormatAndDraw(context, errorStave, errorNotes)
-    // Create the notes
-    const dataNotes = notes.slice(linePosition);
+    function drawErrorStave() {
+        const errorNotes = notes.slice(0, linePosition);
+        errorStave.setContext(context).draw();
+        Formatter.FormatAndDraw(context, errorStave, errorNotes)
+
+    }
+    if (linePosition > 0) drawErrorStave();
+    const dataNotes = linePosition > 0
+        ? notes.slice(linePosition)
+        : notes;
 
     // Format and justify the notes to 400 pixels.
     Formatter.FormatAndDraw(context, dataStave, dataNotes)
