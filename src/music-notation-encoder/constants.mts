@@ -1,3 +1,4 @@
+import { StaveNote, StemmableNote, type Tickable } from "vexflow";
 import type { TokenList } from "../fixed-length-encoding/token-list";
 
 /** The notes that slide from top to bottom */
@@ -14,10 +15,33 @@ const valueModifiers = [
 ]
 
 // When tuning standard, this is allowed
-export const NOTE_TOKEN_LIST: TokenList = rawNotes
-        .flatMap(applyModifiers)
+export const NOTE_TOKEN_LIST: StemmableNote[] = [
+    // For now, have the rest in the middle untill we figure out if we can handle it
+    new StaveNote({ keys: ["B/4"], duration: "qr" }),
+    ...rawNotes
+        .flatMap(expandNotes)
+        .map(notes => new StaveNote({ keys: notes, duration: 'q' }))
+
+    //.flatMap(applyModifiers)
         // TODO: either flatmap -> timings + xlets or we use timing as decorator
-        .concat(unchangeableNotes)
+        // .concat(unchangeableNotes)
+]
+
+function expandNotes(note: string, index: number, collection: string[]) {
+    return [
+        [note],
+        !collection[index + 2]
+            ? undefined 
+            : [note, collection[index + 2]],
+        !collection[index + 4]
+            ? undefined 
+            : [note, collection[index + 4]],
+        !collection[index + 4]
+            ? undefined 
+            : [note, collection[index + 2], collection[index + 4]]
+    ]
+    .filter(Boolean)
+}
 
 function applyModifiers(note: string) {
 
