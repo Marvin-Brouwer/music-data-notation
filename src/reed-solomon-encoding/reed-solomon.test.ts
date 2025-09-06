@@ -3,7 +3,6 @@ import { describe, test, expect, it } from 'vitest';
 import { createEncoding, type ReedSolomonEncodingOptions } from './reed-solomon.mts';
 import { isEncoderError } from '../encoder-error.mts';
 import { repeat, streamToString, stringToStream } from '../test-helpers';
-import type { ReedSolomonEncoderError } from './reed-solomon.error.mts';
 
 describe('reed‑solomon', () => {
 

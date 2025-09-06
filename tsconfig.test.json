@@ -7,8 +7,9 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "allowJs": true,
-    "lib": ["ES2024.ArrayBuffer", "ES2017.TypedArrays", "ES2024"],
-    "types": ["vite/client"],
+    "lib": ["ES2024.ArrayBuffer", "ES2017.TypedArrays", "ES2024", "DOM"],
+    "typeRoots": [],
+    "types": ["vite/client", "@types/node"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -25,9 +26,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-	"include": ["src/**.mts"],
-  "exclude": ["src/**.ts"],
-  "typeAcquisition": {
-    "exclude": ["@types/node"]
-  }
+	"include": ["src/**.ts"],
+  "exclude": ["src/**.mts"]
 }
