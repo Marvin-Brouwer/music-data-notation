@@ -4,6 +4,7 @@ import { describe, test } from "vitest";
 import { StaveNote } from 'vexflow';
 import { NOTE_TOKEN_LIST } from "./constants.mts";
 import { generateStave } from './stave-generator.mts';
+import { writeImage } from '../test-helpers';
 
 let RANDOM_SEED = 3298249760342582;
 function pseudoRandom() {
@@ -15,17 +16,16 @@ describe('generate tabs', () => {
 
     test('all notes', async () => {
 
-        const imageBytes = generateStave(0, NOTE_TOKEN_LIST);
+        const imageData = generateStave(0, NOTE_TOKEN_LIST);
 
-        fs.writeFileSync(__dirname + '/tab-notes.test.all-notes.png', imageBytes.substring(imageBytes.indexOf(',') + 1), { encoding: 'base64' })
-
+        await writeImage(__dirname + '/stave-generator.test/tab-notes.test.all-notes.png', imageData);
     })
 
     test('all notes > random', async () => {
 
-        const imageBytes = generateStave(0, NOTE_TOKEN_LIST.sort(() => .5 - pseudoRandom()));
+        const imageData = generateStave(0, NOTE_TOKEN_LIST.sort(() => .5 - pseudoRandom()));
 
-        fs.writeFileSync(__dirname + '/tab-notes.test.all-notes-random.png', imageBytes.substring(imageBytes.indexOf(',') + 1), { encoding: 'base64' })
+        await writeImage(__dirname + '/stave-generator.test/tab-notes.test.all-notes-random.png', imageData);
 
     })
 
@@ -51,16 +51,16 @@ describe('generate tabs', () => {
             new StaveNote({ keys: ["b/4"], duration: "qr" }),
         ]
 
-        const imageBytes = generateStave(4, notes);
-        const imageBytes2 = generateStave(0, notes);
+        const imageDataWithError = generateStave(4, notes);
+        const imageDataWithoutError = generateStave(0, notes);
 
-        const imageBytesRandom = generateStave(4, NOTE_TOKEN_LIST
+        const imageDataForRandomNotes = generateStave(4, NOTE_TOKEN_LIST
             .sort(() => .5 - pseudoRandom())
             .slice(0, 16)
         );
 
-        fs.writeFileSync(__dirname + '/tab-notes.test.example.png', imageBytes.substring(imageBytes.indexOf(',') + 1), { encoding: 'base64' })
-        fs.writeFileSync(__dirname + '/tab-notes.test.example-nobar.png', imageBytes2.substring(imageBytes.indexOf(',') + 1), { encoding: 'base64' })
-        fs.writeFileSync(__dirname + '/tab-notes.test.example-random.png', imageBytesRandom.substring(imageBytes.indexOf(',') + 1), { encoding: 'base64' })
+        await writeImage(__dirname + '/stave-generator.test/tab-notes.test.example.png', imageDataWithError)
+        await writeImage(__dirname + '/stave-generator.test/tab-notes.test.example-nobar.png', imageDataWithoutError)
+        await writeImage(__dirname + '/stave-generator.test/tab-notes.test.example-random.png', imageDataForRandomNotes)
     })
 })

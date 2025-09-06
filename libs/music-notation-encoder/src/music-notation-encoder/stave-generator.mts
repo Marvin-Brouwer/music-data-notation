@@ -29,7 +29,7 @@ export function generateStave(linePosition: number, notes: StemmableNote[], back
     renderer.resize(canvas.width, canvas.height);
     const context = renderer.getContext();
 
-    context.setFillStyle('white')
+    context.setFillStyle(backgroundColor)
     context.setLineWidth(LINE_WIDTH);
     context.setStrokeStyle('black');
     context.rect(
@@ -87,5 +87,5 @@ export function generateStave(linePosition: number, notes: StemmableNote[], back
     // Format and justify the notes to 400 pixels.
     Formatter.FormatAndDraw(context, dataStave, dataNotes)
 
-    return canvas.toDataURL()
+    return canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height);
 }

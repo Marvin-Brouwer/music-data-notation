@@ -2,12 +2,13 @@ import type { EncoderError } from "../encoder-error.mts";
 import { packBaseN, unpackBaseN } from "./base-n";
 import { FixedLengthEncoderError } from "./fixed-length-encoder.error";
 
-export type FixedLengthEncoderOptions = {
-    tokenList: string[],
+type DefaultTokenType = string;
+export type FixedLengthEncoderOptions<TToken = DefaultTokenType> = {
+    tokenList: TToken[],
     outputLength: number
 }
 
-export function fixedLengthEncoder(options: FixedLengthEncoderOptions) {
+export function fixedLengthEncoder<TToken = DefaultTokenType>(options: FixedLengthEncoderOptions<TToken>) {
     const { tokenList, outputLength } = options;
 
     function calcMaxInputLength(inputBytes: Uint8Array) {
@@ -28,7 +29,7 @@ export function fixedLengthEncoder(options: FixedLengthEncoderOptions) {
 
     function encodeBytes(
         data: Uint8Array,
-    ): string[] | EncoderError {
+    ): TToken[] | EncoderError {
 
         const maxInputLength = calcMaxInputLength(data)
         if (maxInputLength < data.length) 
@@ -46,7 +47,7 @@ export function fixedLengthEncoder(options: FixedLengthEncoderOptions) {
     }
 
     function decodeBytes(
-        tokens: string[]
+        tokens: TToken[]
     ): Uint8Array {
         if (tokenList.length >= 256) {
             return new Uint8Array(tokens.map(t => tokenList.indexOf(t)));
