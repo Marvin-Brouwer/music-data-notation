@@ -1,0 +1,12 @@
+{
+  "name": "@plugins/vite-plugin-jison",
+  "version": "0.0.0",
+  "description": "Wrapper for vextab to make it work",
+  "main": "./jison.plugin.mts",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "jison": "^0.4.18",
+    "lodash": "^4.17.21"
+  }
+}

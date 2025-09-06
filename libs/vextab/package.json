@@ -1,0 +1,18 @@
+{
+  "name": "@music-data-notation/vextab",
+  "version": "0.0.0",
+  "description": "Wrapper for vextab to make it work",
+  "main": "TODO",
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "vite-plugin-coffee": "^2.2.1",
+    "canvas": "^3.2.0",
+    "jsdom": "^26.1.0"
+  },
+  "dependencies": {
+    "jison": "^0.4.18",
+    "lodash": "^4.17.21",
+    "vexflow": "^4.2.5"
+  }
+}

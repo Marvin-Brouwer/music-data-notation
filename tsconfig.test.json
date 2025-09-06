@@ -27,5 +27,5 @@
     "noUncheckedSideEffectImports": true
   },
 	"include": ["src/**.ts"],
-  "exclude": ["src/**.mts"]
+  "exclude": ["src/**.mts", "libs/vextab"]
 }

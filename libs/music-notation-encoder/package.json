@@ -1,0 +1,22 @@
+{
+  "name": "@marvin-brouwer/music-notation-encoder",
+  "version": "0.0.0",
+  "description": "",
+  "main": "./src/_module.mts",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config ./vitest.config.mts",
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "jsdom": "^26.1.0"
+  },
+  "dependencies": {
+    "js-sha256": "^0.11.1",
+    "vexflow": "^4.2.5"
+  }
+}

@@ -5,7 +5,7 @@ import { StaveNote } from 'vexflow';
 import { NOTE_TOKEN_LIST } from "./constants.mts";
 import { generateStave } from './stave-generator.mts';
 
-let RANDOM_SEED = 329823749763435;
+let RANDOM_SEED = 3298249760342582;
 function pseudoRandom() {
     var x = Math.sin(RANDOM_SEED++) * 10000;
     return x - Math.floor(x);
