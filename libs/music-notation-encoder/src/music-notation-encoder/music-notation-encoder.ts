@@ -17,7 +17,7 @@ export function musicNotationEncoder() {
         if (isEncoderError(encodedText)) return encodedText;
         console.log(encodedText.map(note => note.keys))
 
-        const imageData = generateStave(0, encodedText);
+        const imageData = generateStave(4, encodedText);
 
         return imageData;
     }
