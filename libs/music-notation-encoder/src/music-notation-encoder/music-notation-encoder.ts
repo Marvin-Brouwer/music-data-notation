@@ -1,7 +1,7 @@
 import { EncoderError, isEncoderError } from "../encoder-error.mts";
 import { fixedLengthEncoder } from "../fixed-length-encoding/fixed-length-encoder.mts";
 import { NOTE_TOKEN_LIST } from "./constants.mts";
-import { generateStave } from "./stave-generator.mts";
+import { generateStave } from "./encoding/stave-generator.mts";
 
 export function musicNotationEncoder() {
 

@@ -10,15 +10,17 @@ export const streamToString = (value: Uint8Array<ArrayBufferLike>) => {
     return new TextDecoder('utf-8').decode(value);
 }
 
-export async function writeImage(path: string, imagedata: ImageData) {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d')!;
-    canvas.width = imagedata.width;
-    canvas.height = imagedata.height;
-    ctx.putImageData(imagedata, 0, 0);
+export async function writeImage(path: string, imageData: ImageData) {
+    if (imageData === undefined || imageData.data.length === 0) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    ctx.putImageData(imageData, 0, 0);
 
     const dataUrl = canvas.toDataURL(); 
     const imageBytes = dataUrl.substring(dataUrl.indexOf(',') + 1);
 
-    fs.writeFile(path, imageBytes, { encoding: 'base64' })
+    await fs.writeFile(path, imageBytes, { encoding: 'base64' })
 }

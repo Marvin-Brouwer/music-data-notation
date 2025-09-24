@@ -1,7 +1,5 @@
-import fs from 'node:fs';
-
 import { describe, test } from "vitest";
-import { StaveNote } from 'vexflow';
+import type { NoteStruct } from 'vexflow';
 import { NOTE_TOKEN_LIST } from "../constants.mts";
 import { generateStave } from './stave-generator.mts';
 import { writeImage } from '../../test-helpers';
@@ -31,25 +29,25 @@ describe('generate tabs', () => {
 
     test('examples', async () => {
 
-        const notes = [
-            new StaveNote({ keys: ["c/4"], duration: "8" }),
-            new StaveNote({ keys: ["c/4"], duration: "8" }),
-            new StaveNote({ keys: ["c/4"], duration: "8" }),
-            new StaveNote({ keys: ["c/4"], duration: "8" }),
+        const notes =  new Array<NoteStruct>(
+            { keys: ["c/4"], duration: "8" },
+            { keys: ["c/4"], duration: "8" },
+            { keys: ["c/4"], duration: "8" },
+            { keys: ["c/4"], duration: "8" },
 
-            new StaveNote({ keys: ["c/4"], duration: "q" }),
-            new StaveNote({ keys: ["c/4"], duration: "q" }),
-            new StaveNote({ keys: ["d/4"], duration: "q" }),
-            new StaveNote({ keys: ["b/4"], duration: "qr" }),
-            new StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "q" }),
-            new StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "q" }),
-            new StaveNote({ keys: ["b/4"], duration: "qr" }),
-            new StaveNote({ keys: ["b/4"], duration: "qr" }),
-            new StaveNote({ keys: ["c/4"], duration: "q" }),
-            new StaveNote({ keys: ["c/4"], duration: "q" }),
-            new StaveNote({ keys: ["d/4"], duration: "q" }),
-            new StaveNote({ keys: ["b/4"], duration: "qr" }),
-        ]
+            { keys: ["c/4"], duration: "q" },
+            { keys: ["c/4"], duration: "q" },
+            { keys: ["d/4"], duration: "q" },
+            { keys: ["b/4"], duration: "qr" },
+            { keys: ["c/4", "e/4", "g/4"], duration: "q" },
+            { keys: ["c/4", "e/4", "g/4"], duration: "q" },
+            { keys: ["b/4"], duration: "qr" },
+            { keys: ["b/4"], duration: "qr" },
+            { keys: ["c/4"], duration: "q" },
+            { keys: ["c/4"], duration: "q" },
+            { keys: ["d/4"], duration: "q" },
+            { keys: ["b/4"], duration: "qr" }
+        )
 
         const imageDataWithError = generateStave(4, notes);
         const imageDataWithoutError = generateStave(0, notes);
