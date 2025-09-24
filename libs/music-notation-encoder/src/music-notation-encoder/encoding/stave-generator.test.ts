@@ -2,9 +2,9 @@ import fs from 'node:fs';
 
 import { describe, test } from "vitest";
 import { StaveNote } from 'vexflow';
-import { NOTE_TOKEN_LIST } from "./constants.mts";
+import { NOTE_TOKEN_LIST } from "../constants.mts";
 import { generateStave } from './stave-generator.mts';
-import { writeImage } from '../test-helpers';
+import { writeImage } from '../../test-helpers';
 
 let RANDOM_SEED = 3298249760342582;
 function pseudoRandom() {
