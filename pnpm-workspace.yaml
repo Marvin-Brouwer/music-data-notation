@@ -1,3 +1,7 @@
 packages:
-   - libs/*
-   - plugin/*
+  - libs/*
+  - plugin/*
+
+onlyBuiltDependencies:
+  - canvas
+  - esbuild
