@@ -1,7 +1,9 @@
 packages:
   - libs/*
-  - plugin/*
+  - plugins/*
 
 onlyBuiltDependencies:
   - canvas
   - esbuild
+  - python-wasm
+  - wasi-js

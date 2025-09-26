@@ -19,6 +19,6 @@ export default defineConfig({
         target: 'esnext'
     },
     optimizeDeps: {
-        exclude: ['js-sha256'],
+        exclude: ['js-sha256', "pyodide"],
     }
 });

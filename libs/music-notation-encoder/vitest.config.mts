@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 import config from './vite.config.mts'
 
@@ -8,6 +8,7 @@ export default defineConfig({
 		globals: true,
 		environment: 'jsdom',
 		testTimeout: 40_000,
+    	exclude: [...configDefaults.exclude, '**/node_modules/**'],
 		server: {
 			deps: {
 				fallbackCJS: true,

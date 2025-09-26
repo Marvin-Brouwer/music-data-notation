@@ -1,0 +1,12 @@
+{
+  "name": "@plugins/vite-plugin-python",
+  "version": "0.0.0",
+  "description": "Plugin to import python into a Vite project",
+  "main": "./python.plugin.mts",
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "python-wasm": "^0.28.1",
+    "vite": "^7.1.7"
+  }
+}
