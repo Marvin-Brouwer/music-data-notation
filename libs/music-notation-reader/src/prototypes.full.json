@@ -1,0 +1,62 @@
+[
+  {
+    "label": "whole",
+    "features": { "aspectRatio": 1.00, "filledRatio": 0.30, "holes": 1 }
+  },
+  {
+    "label": "half",
+    "features": { "aspectRatio": 1.00, "filledRatio": 0.55, "holes": 1 }
+  },
+  { 
+    "label": "quarter",
+    "features": { "aspectRatio": 0.95, "filledRatio": 0.85, "holes": 0 }
+  },
+  {
+    "label": "eighth",
+    "features": { "aspectRatio": 0.92, "filledRatio": 0.80, "holes": 0 }
+  },
+  {
+    "label": "sixteenth",
+    "features": { "aspectRatio": 0.90, "filledRatio": 0.78, "holes": 0 }
+  },
+  {
+    "label": "rest_whole",
+    "features": { "aspectRatio": 1.20, "filledRatio": 0.25, "holes": 0 }
+  },
+  {
+    "label": "rest_half",
+    "features": { "aspectRatio": 1.10, "filledRatio": 0.35, "holes": 0 }
+  },
+  {
+    "label": "rest_quarter",
+    "features": { "aspectRatio": 0.85, "filledRatio": 0.45, "holes": 0 }
+  },
+  {
+    "label": "rest_eighth",
+    "features": { "aspectRatio": 0.80, "filledRatio": 0.50, "holes": 0 }
+  },
+  {
+    "label": "clef_treble",
+    "features": { "aspectRatio": 0.55, "filledRatio": 0.65, "holes": 0 }
+  },
+  {
+    "label": "clef_bass",
+    "features": { "aspectRatio": 0.58, "filledRatio": 0.62, "holes": 0 }
+  },
+{
+    "label": "accidental_sharp",
+    "features": { "aspectRatio": 0.30, "filledRatio": 0.70, "holes": 0 }
+  },
+  {
+    "label": "accidental_flat",
+    "features": { "aspectRatio": 0.35, "filledRatio": 0.68, "holes": 0 }
+  },
+  {
+    "label": "accidental_natural",
+    "features": { "aspectRatio": 0.38, "filledRatio": 0.66, "holes": 0 }
+  },
+  {
+    "label": "dot",
+    "features": { "aspectRatio": 0.20, "filledRatio": 0.90, "holes": 0 }
+  }
+]

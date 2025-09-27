@@ -1,0 +1,22 @@
+{
+  "name": "@marvin-brouwer/music-notation-reader",
+  "version": "0.0.0",
+  "description": "Converts ImageData to vexflow",
+  "main": "./src/_module.mts",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config ./vitest.config.mts",
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "jsdom": "^26.1.0"
+  },
+  "dependencies": {
+    "@techstark/opencv-js": "^4.11.0-release.1",
+    "@types/vexflow": "^4.0.1"
+  }
+}
