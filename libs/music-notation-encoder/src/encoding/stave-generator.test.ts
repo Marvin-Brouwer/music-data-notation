@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import type { NoteStruct } from 'vexflow';
 import { NOTE_TOKEN_LIST } from "../constants.mts";
 import { generateStave } from './stave-generator.mts';
-import { writeImage } from '../../test-helpers';
+import { writeImage } from '@marvin-brouwer/tools';
 
 let RANDOM_SEED = 3298249760342582;
 function pseudoRandom() {

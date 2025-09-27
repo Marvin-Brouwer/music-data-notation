@@ -1,15 +1,15 @@
 {
-  "name": "@marvin-brouwer/music-notation-encoder",
+  "name": "@marvin-brouwer/reed-solomon-encoding",
   "version": "0.0.0",
   "description": "",
   "exports": {
     ".": {
-      "import": "./dist/music-notation-encoder.js",
+      "import": "./dist/reed-solomon-encoding.js",
       "types": "./src/_module.mts"
     }
   },
   "files": [
-    "./dist/music-notation-encoder.js.map"
+    "./dist/reed-solomon-encoding.js.map"
   ],
   "type": "module",
   "scripts": {
@@ -20,18 +20,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/jsdom": "^21.1.7",
-    "jsdom": "^26.1.0",
     "@marvin-brouwer/tools": "workspace:^"
   },
   "dependencies": {
-    "vexflow": "^4.2.5",
-    "@marvin-brouwer/fixed-length-encoding": "workspace:^",
-    "@marvin-brouwer/reed-solomon-encoding": "workspace:^",
     "@marvin-brouwer/named-error": "workspace:^"
-  },
-  "optionalDependencies": {
-    "js-sha256": "^0.11.1",
-    "pyodide": "^0.28.3"
   }
 }

@@ -1,1 +1,1 @@
-export * from './fixed-length-encoding/fixed-length-encoder.mts';
+export * from './music-notation-encoder.mts'

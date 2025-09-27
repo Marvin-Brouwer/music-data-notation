@@ -1,5 +1,5 @@
-import { EncoderError, isEncoderError } from "../encoder-error.mts";
-import { fixedLengthEncoder } from "../fixed-length-encoding/fixed-length-encoder.mts";
+import { isError } from "@marvin-brouwer/named-error";
+import { fixedLengthEncoder } from "../../fixed-length-encoding/src/fixed-length-encoder.mts";
 import { NOTE_TOKEN_LIST } from "./constants.mts";
 import { generateStave } from "./encoding/stave-generator.mts";
 
@@ -11,11 +11,10 @@ export function musicNotationEncoder() {
         tokenList: NOTE_TOKEN_LIST
     });
 
-    function encode(text: string): ImageData | EncoderError {
+    function encode(text: string): ImageData | Error {
         const inputStream = textEncoder.encode(text);
         const encodedText = flEncoder.encodeBytes(inputStream);
-        if (isEncoderError(encodedText)) return encodedText;
-        console.log(encodedText.map(note => note.keys))
+        if (isError(encodedText)) return encodedText;
 
         const imageData = generateStave(4, encodedText);
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { createDecoder, createErrorCorrector } from "./decoder.mts";
-import { streamToString } from '../../test-helpers';
+import { streamToString } from '@marvin-brouwer/tools';
 
 describe('decoder', function () {
 

@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig((c) => ({
+export default defineConfig({
+    // This is a devtool, don't minify
     esbuild: {
-        minifyIdentifiers: c.mode !== 'development',
-        keepNames:  c.mode === 'development'
+        minifyIdentifiers: false,
+        keepNames: true
     },
     build: {
         target: 'esnext',
@@ -22,4 +23,4 @@ export default defineConfig((c) => ({
             entry: './src/_module.mts'
         }
     }
-}));
+});

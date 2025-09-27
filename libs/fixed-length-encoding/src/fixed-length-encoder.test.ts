@@ -1,7 +1,7 @@
 import { describe, it, expect, test } from "vitest";
 import { fixedLengthEncoder, type FixedLengthEncoderOptions } from "./fixed-length-encoder.mts"; // adj
-import { stringToStream, streamToString } from '../test-helpers';
-import { isEncoderError } from "../encoder-error.mts";
+import { stringToStream, streamToString } from '@marvin-brouwer/tools';
+import { isError } from "@marvin-brouwer/named-error";
 
 describe("Encoder/Decoder roundtrip", () => {
 
@@ -121,7 +121,7 @@ describe("Encoder/Decoder roundtrip", () => {
             const result = sut.encodeBytes(inputStream);
 
             // Assert
-            expect(isEncoderError(result)).toBeTruthy();
+            expect(isError(result)).toBeTruthy();
         })
     });
 

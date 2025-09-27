@@ -7,7 +7,6 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'jsdom',
-		testTimeout: 40_000,
     	exclude: [...configDefaults.exclude, '**/node_modules/**'],
 		server: {
 			deps: {

@@ -1,8 +1,8 @@
 import { describe, test, expect, it } from 'vitest';
 
 import { createEncoding, type ReedSolomonEncodingOptions } from './reed-solomon.mts';
-import { isEncoderError } from '../encoder-error.mts';
-import { repeat, streamToString, stringToStream } from '../test-helpers';
+import { repeat, streamToString, stringToStream } from '@marvin-brouwer/tools';
+import { isError } from '@marvin-brouwer/named-error';
 
 describe('reed‑solomon', () => {
 
@@ -72,7 +72,7 @@ describe('reed‑solomon', () => {
     enc[86] = 99;
     enc[87] = 99;
     enc[88] = 99;
-    expect(isEncoderError(rs.decode(enc))).toBeTruthy();
+    expect(isError(rs.decode(enc))).toBeTruthy();
 
   });
 
@@ -107,21 +107,21 @@ describe('reed‑solomon', () => {
 
       const rs = createEncoding({ ...defaultEncodingOptions, blockLength: payloadBlockLength });
       const encodeResult = rs.encode(payload);
-      expect(isEncoderError(encodeResult)).toBe(false);
+      expect(isError(encodeResult)).toBe(false);
       expect((encodeResult as Uint8Array).length).toBe(48);
     });
 
     test('encode returns DecodingError when parityBytes <= 0', () => {
       const rs = createEncoding({ parityBytes: 0, blockLength: payloadBlockLength });
       const encodeResult = rs.encode(payload);
-      expect(isEncoderError(encodeResult)).toBe(true);
+      expect(isError(encodeResult)).toBe(true);
     });
 
     test('decode recovers original payload when no errors', () => {
       const rs = createEncoding({ ...defaultEncodingOptions, blockLength: payloadBlockLength });
       const encodeResult = rs.encode(payload) as Uint8Array;
       const decodeResult = rs.decode(encodeResult);
-      expect(isEncoderError(decodeResult)).toBe(false);
+      expect(isError(decodeResult)).toBe(false);
       expect(Array.from(decodeResult as Uint8Array)).toEqual(Array.from(payload));
     });
 
@@ -135,7 +135,7 @@ describe('reed‑solomon', () => {
       corrupted.set(encodeResult.slice(0, encodeResult.length - 14))
 
       const decodeResult = rs.decode(corrupted);
-      expect(isEncoderError(decodeResult)).toBe(true);
+      expect(isError(decodeResult)).toBe(true);
     });
 
   });

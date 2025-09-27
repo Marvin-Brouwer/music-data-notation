@@ -1,0 +1,26 @@
+{
+  "name": "@marvin-brouwer/tools",
+  "version": "0.0.0",
+  "description": "Internal tools",
+  "exports": {
+    ".": {
+      "import": "./dist/tools.js",
+      "types": "./src/_module.mts"
+    }
+  },
+  "files": [
+    "./dist/tools.js.map"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.5.2"
+  },
+  "peerDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}

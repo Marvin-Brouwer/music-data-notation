@@ -3,7 +3,6 @@
 // Functional Reed‑Solomon wrapper (ERC‑JS based)
 // ---------------------------------------------------------------
 
-import type { EncoderError } from '../encoder-error.mts';
 import { createDecoder } from './erc/decoder.mts';
 import { createEncoder } from './erc/encoder.mts';
 import { ReedSolomonEncoderError } from './reed-solomon.error.mts';
@@ -34,12 +33,12 @@ export function createEncoding(options: ReedSolomonEncodingOptions) {
    */
   function encode(
     payload: Uint8Array
-  ): Uint8Array | EncoderError {
+  ): Uint8Array | Error {
 
     if (payload.length <= parityBytes)
       return ReedSolomonEncoderError.forTotalLength();
     if (blockLength <= parityBytes)
-      return ReedSolomonEncoderError.forTotalLength();
+      return ReedSolomonEncoderError.forIncorrectBlockSize();
     if (parityBytes <= 0)
       return ReedSolomonEncoderError.forIncorrectParityBytes();
     const minimumBlockLength = payload.length + parityBytes;
@@ -63,14 +62,14 @@ export function createEncoding(options: ReedSolomonEncodingOptions) {
    * @returns            Uint8Array containing the original payload (length = totalLength - parityBytes).
    *
    * @throws DecodingError  if the block size is wrong, if the wrapper has never been
-   *                        properly initialised, or if the error‑correction limit is exceeded.
+   *                        properly initialized, or if the error‑correction limit is exceeded.
    */
   function decode(
     block: Uint8Array
-  ): Uint8Array | EncoderError {
+  ): Uint8Array | Error {
 
     if (blockLength <= 0 || blockLength > 255)
-      return ReedSolomonEncoderError.forTotalLength();
+      return ReedSolomonEncoderError.forIncorrectBlockSize();
     if (parityBytes <= 0)
       return ReedSolomonEncoderError.forIncorrectParityBytes();
 

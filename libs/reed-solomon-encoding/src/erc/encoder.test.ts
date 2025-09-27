@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { repeat, stringToStream } from '../../test-helpers';
+import { repeat, stringToStream } from '@marvin-brouwer/tools';
 import { createEncoder } from './encoder.mts';
 
 

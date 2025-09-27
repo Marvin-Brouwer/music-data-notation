@@ -1,0 +1,21 @@
+{
+  "name": "@marvin-brouwer/named-error",
+  "version": "0.0.0",
+  "description": "Explicitly named error type",
+  "exports": {
+    ".": {
+      "import": "./dist/named-error.js",
+      "types": "./src/_module.mts"
+    }
+  },
+  "files": [
+    "./dist/named-error.js.map"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "vite --mode development --watch",
+    "build:dev": "vite build --mode development",
+    "build": "vite build"
+  },
+  "license": "MIT"
+}

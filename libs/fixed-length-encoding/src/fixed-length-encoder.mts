@@ -1,6 +1,6 @@
-import type { EncoderError } from "../encoder-error.mts";
-import { packBaseN, unpackBaseN } from "./base-n";
-import { FixedLengthEncoderError } from "./fixed-length-encoder.error";
+import type { EncoderError } from "../../music-notation-encoder/src/encoder-error.mts";
+import { packBaseN, unpackBaseN } from "./base-n.mts";
+import { FixedLengthEncoderError } from "./fixed-length-encoder.error.mts";
 
 type DefaultTokenType = string;
 export type FixedLengthEncoderOptions<TToken = DefaultTokenType> = {
