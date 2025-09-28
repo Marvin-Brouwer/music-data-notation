@@ -3,15 +3,10 @@ import { ScreenshotOptions, Webcam, getScreenshot, getScreenshotData } from "../
 import { musicNotationEncoder } from "@marvin-brouwer/music-notation-encoder";
 
 const videoConstraints = {
-	width: 500,
+	width: 200,
 	height: 400,
-	facingMode: "environment",
+	facingMode: "environment"
 };
-const screenshotOptions: ScreenshotOptions = {
-	screenshotFormat: 'image/png',
-	screenshotQuality: 10,
-	imageSmoothing: true
-}
 
 const encoder = musicNotationEncoder()
 
@@ -19,33 +14,32 @@ const style = `
 .data {
 	display: block;
 	width: 300px;
-	overflow-wrap: anywhere;
+	overflow-wrap: break-word;
 }
 `
 export const Scanner: Component = () => {
 
 
 	const [webcamRef, setWebcamRef] = createSignal<HTMLVideoElement>();
-	const [debugText, setDebugText] = createSignal('');
+	const [previousFrame, setPreviousFrame] = createSignal<ImageData>();
 	const [decodedText, setDecodedText] = createSignal('');
 	let interval: NodeJS.Timeout | undefined = undefined
 
 	const capture = async () => {
-		const imageSrc = getScreenshot(webcamRef()!,screenshotOptions);
-		if (imageSrc === debugText()) {
-			setDecodedText('');
-			setDebugText('');
-			return;
-		}
-		// TODO actual decode
-		setDebugText(imageSrc ?? '');
 
 		const imageData = getScreenshotData(webcamRef()!)
 		if (!imageData) return
+		if (imageData === previousFrame()) return;
+		setPreviousFrame(imageData);
+
 		try{
 			let result = await encoder.decode(imageData);
-			if (!result.length) return setDecodedText('');
-			setDecodedText(result.map(r => `${r.keys.join('-')}/${r.duration}`).join(' '))
+			if (!result.length) return;
+			if (!result[0].clef) return;
+			// Only single line supported for now
+			if (!result.every(r => r.clef === result[0].clef)) return;
+
+			setDecodedText(result[0].clef  + " " + result.map(r => `${r.keys.join('-')}/${r.duration}`).join(' '))
 		} catch (e){
 			console.error(e)
 		}
@@ -65,6 +59,5 @@ export const Scanner: Component = () => {
 		<Webcam audio={false} videoConstraints={videoConstraints} ref={setWebcamRef} />
 		<p>&nbsp;</p>
 		<p class='data'>{decodedText()}</p>
-		<p class='data'>{debugText()}</p>
 	</>
 }
