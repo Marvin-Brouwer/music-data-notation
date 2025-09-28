@@ -7,30 +7,30 @@ const encoder = musicNotationEncoder()
 
 export const Display: Component = () => {
 
-  const [searchParams] = useSearchParams();
-  const textValue = createMemo(() => searchParams['text'] as string ?? '', [searchParams]);
-  const encodedValue = createMemo(() => encoder.encode(textValue()), [searchParams])
-
-  
+	const [searchParams] = useSearchParams();
+	const textValue = createMemo(() => searchParams['text'] as string ?? '', [searchParams]);
+	const encodedValue = createMemo(() => encoder.encode(textValue()), [searchParams])
 
 	return <>
-		
-		<p>Current value = {textValue()}</p>
 		<p>{renderImage(encodedValue())}</p>
 	</>
 }
 
+// TODO figure out why the image doesn't come out the same as the tests?
+// Or maybe just use SVG instead
 function renderImage(data: ImageData | Error) {
-	if(isError(data)) return 'TODO error image';
+	if (isError(data)) return <span>{data.message}</span>;
 
 	const canvas = document.createElement("canvas");
 	canvas.width = data.width;
 	canvas.height = data.height;
 	const ctx = canvas.getContext("2d")!;
-    ctx.putImageData(data, 0, 0);
+	ctx.putImageData(data, 0, 0);
 
 	const image = document.createElement("img");
 	image.src = canvas.toDataURL("image/png");
-	
+	image.width = data.width;
+	image.height = data.height;
+
 	return <>{image}</>
 }

@@ -16,7 +16,8 @@ export function musicNotationEncoder() {
         const encodedText = flEncoder.encodeBytes(inputStream);
         if (isError(encodedText)) return encodedText;
 
-        const imageData = generateStave(4, encodedText);
+        // TODO reed solomon encoder
+        const imageData = generateStave(0, encodedText);
 
         return imageData;
     }
