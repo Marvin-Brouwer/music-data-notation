@@ -9,9 +9,10 @@
  * Use OpenCV‑JS equivalents (cv.cvtColor, cv.adaptiveThreshold, cv.morphologyEx).
  */
 
-import cv, { type ImageData } from '@techstark/opencv-js';
+import type { ImageData, Mat } from '@techstark/opencv-js';
+import cv from './open-cv-bootstrap.mts';
 
-export async function preprocess(img: ImageData): Promise<cv.Mat> {
+export async function preprocess(img: ImageData): Promise<Mat> {
 
   // Convert ImageData → cv.Mat
   const src = cv.matFromImageData(img);

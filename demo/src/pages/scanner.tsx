@@ -1,5 +1,6 @@
 import { Component, createSignal, onCleanup, onMount } from "solid-js";
-import { ScreenshotOptions, Webcam, getScreenshot } from "../components/webcam";
+import { ScreenshotOptions, Webcam, getScreenshot, getScreenshotData } from "../components/webcam";
+import { musicNotationEncoder } from "@marvin-brouwer/music-notation-encoder";
 
 const videoConstraints = {
 	width: 500,
@@ -11,6 +12,8 @@ const screenshotOptions: ScreenshotOptions = {
 	screenshotQuality: 10,
 	imageSmoothing: true
 }
+
+const encoder = musicNotationEncoder()
 
 const style = `
 .data {
@@ -26,11 +29,21 @@ export const Scanner: Component = () => {
 	const [decodedText, setDecodedText] = createSignal('');
 	let interval: NodeJS.Timeout | undefined = undefined
 
-	const capture = () => {
+	const capture = async () => {
 		const imageSrc = getScreenshot(webcamRef()!,screenshotOptions);
 		if (imageSrc === decodedText()) return;
 		// TODO actual decode
 		setDecodedText(imageSrc ?? '');
+
+		const imageData = getScreenshotData(webcamRef()!)
+		if (!imageData) return
+		try{
+			let result = await encoder.decode(imageData);
+			if (result.length) debugger;
+			result = result;
+		} catch (e){
+			console.error(e)
+		}
 	};
 
 	onMount(() => {

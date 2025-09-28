@@ -2,6 +2,7 @@ import { isError } from "@marvin-brouwer/named-error";
 import { fixedLengthEncoder } from "../../fixed-length-encoding/src/fixed-length-encoder.mts";
 import { NOTE_TOKEN_LIST } from "./constants.mts";
 import { generateStave } from "./encoding/stave-generator.mts";
+import { parseSheetMusic } from '@marvin-brouwer/music-notation-reader'
 
 export function musicNotationEncoder() {
 
@@ -22,7 +23,12 @@ export function musicNotationEncoder() {
         return imageData;
     }
 
+    async function decode(imageData: ImageData) {
+        return await parseSheetMusic(imageData);
+    }
+
     return {
-        encode
+        encode,
+        decode
     }
 }

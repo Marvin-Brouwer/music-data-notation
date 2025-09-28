@@ -8,9 +8,10 @@
  * What you’ll implement yourself
  * Implement a fast projection‑profile method in JS: sum pixel values per row, find peaks, then refine with cv.HoughLinesP.
  */
-import cv from '@techstark/opencv-js';
+import type { Mat } from '@techstark/opencv-js';
+import cv from './open-cv-bootstrap.mts';
 
-export async function detectStaffLines(bin: cv.Mat): Promise<number[]> {
+export async function detectStaffLines(bin: Mat): Promise<number[]> {
 
   // Horizontal projection profile
   const rows = bin.rows;
@@ -47,7 +48,7 @@ export async function detectStaffLines(bin: cv.Mat): Promise<number[]> {
   return grouped; // e.g., [12, 22, 32, 42, 52, …] (five lines per staff)
 }
 
-export async function removeStaffLines(bin: cv.Mat, lines: number[]): Promise<cv.Mat> {
+export async function removeStaffLines(bin: Mat, lines: number[]): Promise<Mat> {
   const result = bin.clone();
 
   // Dilate a thin horizontal structuring element over each line row

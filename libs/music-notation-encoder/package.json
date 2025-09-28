@@ -28,6 +28,7 @@
     "vexflow": "^4.2.5",
     "@marvin-brouwer/fixed-length-encoding": "workspace:^",
     "@marvin-brouwer/reed-solomon-encoding": "workspace:^",
+    "@marvin-brouwer/music-notation-reader": "workspace:^",
     "@marvin-brouwer/named-error": "workspace:^"
   },
   "optionalDependencies": {

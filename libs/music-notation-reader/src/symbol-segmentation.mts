@@ -9,9 +9,10 @@
  * After line removal, run cv.findContours on the binary image; each contour → bounding box.
  */
 
-import cv from '@techstark/opencv-js';
+import type { Mat, Rect } from '@techstark/opencv-js';
+import cv from './open-cv-bootstrap.mts';
 
-export async function segmentSymbols(noStaff: cv.Mat): Promise<cv.Rect[]> {
+export async function segmentSymbols(noStaff: Mat): Promise<Rect[]> {
 
   // Find contours (external only)
   const contours = new cv.MatVector();
@@ -24,7 +25,7 @@ export async function segmentSymbols(noStaff: cv.Mat): Promise<cv.Rect[]> {
     cv.CHAIN_APPROX_SIMPLE,
   );
 
-  const boxes: cv.Rect[] = [];
+  const boxes: Rect[] = [];
   for (let i = 0; i < contours.size(); ++i) {
     const cnt = contours.get(i);
     const rect = cv.boundingRect(cnt);

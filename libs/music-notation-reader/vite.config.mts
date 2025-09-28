@@ -1,24 +1,26 @@
 import { defineConfig } from 'vite';
 
-import commonjs from 'vite-plugin-commonjs'
-
-export default defineConfig({
-    plugins: [
-
-        // // We need buffer to do cryptographic stuff
-        // nodePolyfills({
-        //     include: ['buffer'],
-        //     globals: {
-        //         Buffer: true
-        //     },
-        //     protocolImports: true,
-        // }),
-        commonjs(),
-    ],
-    build: {
-        target: 'esnext'
+export default defineConfig((c) => ({
+    esbuild: {
+        minifyIdentifiers: c.mode !== 'development',
+        keepNames: c.mode === 'development'
     },
-    optimizeDeps: {
-        exclude: ['js-sha256', "pyodide"],
+    build: {
+        target: 'esnext',
+        sourcemap: true,
+        rollupOptions: {
+            output: {
+                esModule: true,
+            },
+            external: [
+                // '@techstark/opencv-js',
+                /^node:/,
+                /^virtual:/,
+            ]
+        },
+        lib: {
+            formats: ['es'],
+            entry: './src/_module.mts'
+        }
     }
-});
+}));

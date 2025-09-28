@@ -37,14 +37,14 @@ importers:
         version: 1.9.9
       vite-plugin-solid:
         specifier: ^2.11.8
-        version: 2.11.8(solid-js@1.9.9)(vite@4.5.14(@types/node@24.5.2))
+        version: 2.11.8(solid-js@1.9.9)(vite@7.1.7(@types/node@24.5.2))
     devDependencies:
       '@marvin-brouwer/tools':
         specifier: workspace:^
         version: link:../libs/tools
       '@vitejs/plugin-basic-ssl':
         specifier: ^2.1.0
-        version: 2.1.0(vite@4.5.14(@types/node@24.5.2))
+        version: 2.1.0(vite@7.1.7(@types/node@24.5.2))
       gh-pages:
         specifier: ^6.3.0
         version: 6.3.0
@@ -64,6 +64,9 @@ importers:
       '@marvin-brouwer/fixed-length-encoding':
         specifier: workspace:^
         version: link:../fixed-length-encoding
+      '@marvin-brouwer/music-notation-reader':
+        specifier: workspace:^
+        version: link:../music-notation-reader
       '@marvin-brouwer/named-error':
         specifier: workspace:^
         version: link:../named-error
@@ -2506,9 +2509,9 @@ snapshots:
     dependencies:
       vexflow: 4.2.5
 
-  '@vitejs/plugin-basic-ssl@2.1.0(vite@4.5.14(@types/node@24.5.2))':
+  '@vitejs/plugin-basic-ssl@2.1.0(vite@7.1.7(@types/node@24.5.2))':
     dependencies:
-      vite: 4.5.14(@types/node@24.5.2)
+      vite: 7.1.7(@types/node@24.5.2)
 
   '@vitest/expect@3.2.4':
     dependencies:
@@ -3434,7 +3437,7 @@ snapshots:
     dependencies:
       vite: 7.1.7(@types/node@24.5.2)
 
-  vite-plugin-solid@2.11.8(solid-js@1.9.9)(vite@4.5.14(@types/node@24.5.2)):
+  vite-plugin-solid@2.11.8(solid-js@1.9.9)(vite@7.1.7(@types/node@24.5.2)):
     dependencies:
       '@babel/core': 7.28.4
       '@types/babel__core': 7.20.5
@@ -3442,8 +3445,8 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 1.9.9
       solid-refresh: 0.6.3(solid-js@1.9.9)
-      vite: 4.5.14(@types/node@24.5.2)
-      vitefu: 1.1.1(vite@4.5.14(@types/node@24.5.2))
+      vite: 7.1.7(@types/node@24.5.2)
+      vitefu: 1.1.1(vite@7.1.7(@types/node@24.5.2))
     transitivePeerDependencies:
       - supports-color
 
@@ -3488,9 +3491,9 @@ snapshots:
       '@types/node': 24.5.2
       fsevents: 2.3.3
 
-  vitefu@1.1.1(vite@4.5.14(@types/node@24.5.2)):
+  vitefu@1.1.1(vite@7.1.7(@types/node@24.5.2)):
     optionalDependencies:
-      vite: 4.5.14(@types/node@24.5.2)
+      vite: 7.1.7(@types/node@24.5.2)
 
   vitest@3.2.4(@types/node@24.5.2)(jsdom@26.1.0(canvas@3.2.0)):
     dependencies:

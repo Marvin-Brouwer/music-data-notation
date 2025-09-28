@@ -9,7 +9,7 @@
  * Export an array of { keys: string[], duration: string, clef?: string } that VexFlow can consume directly
  */
 
-import cv from '@techstark/opencv-js';
+import type { Rect } from '@techstark/opencv-js';
 import { resolveDuration } from './duration-resolver.mts';
 
 export type ParsedNote = {
@@ -22,7 +22,7 @@ export type ParsedNote = {
  * Convert raw detections into VexFlow structs.
  */
 export function buildVexflowNotes(detections: {
-  box: cv.Rect;
+  box: Rect;
   label: string;
   pitch?: string;
 }[]): ParsedNote[] {

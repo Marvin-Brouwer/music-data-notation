@@ -116,6 +116,18 @@ export const getScreenshot = (
   );
 };
 
+export const getScreenshotData = (
+  videoRef: HTMLVideoElement,
+  screenshotOptions: ScreenshotOptions = defaultScreenshotOptions
+) => {
+  if (!hasUserMedia()) return null;
+
+  screenshotOptions = { ...defaultScreenshotOptions, ...screenshotOptions };
+
+  const canvas = getCanvas(videoRef, screenshotOptions);
+  return canvas?.getContext('2d')?.getImageData(0,0, canvas.width, canvas.height)
+};
+
 const getCanvas = (
   videoRef: HTMLVideoElement,
   screenshotOptions: ScreenshotOptions = defaultScreenshotOptions
