@@ -2,9 +2,10 @@ import { Component, createSignal, onCleanup, onMount } from "solid-js";
 import { ScreenshotOptions, Webcam, getScreenshot, getScreenshotData } from "../components/webcam";
 import { musicNotationEncoder } from "@marvin-brouwer/music-notation-encoder";
 
-const videoConstraints = {
+const videoConstraints: MediaStreamConstraints["video"] = {
 	width: 200,
 	height: 400,
+	noiseSuppression: true,
 	facingMode: "environment"
 };
 
@@ -35,11 +36,11 @@ export const Scanner: Component = () => {
 		try{
 			let result = await encoder.decode(imageData);
 			if (!result.length) return;
-			if (!result[0].clef) return;
+			// if (!result[0].clef) return;
 			// Only single line supported for now
-			if (!result.every(r => r.clef === result[0].clef)) return;
+			// if (!result.every(r => r.clef === result[0].clef)) return;
 
-			setDecodedText(result[0].clef  + " " + result.map(r => `${r.keys.join('-')}/${r.duration}`).join(' '))
+			setDecodedText(JSON.stringify(result, undefined, 2));
 		} catch (e){
 			console.error(e)
 		}
