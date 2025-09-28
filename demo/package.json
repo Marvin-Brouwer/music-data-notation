@@ -1,0 +1,25 @@
+{
+  "name": "@marvin-brouwer/music-data-notation-demo",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.html",
+  "homepage": "https://marvin-brouwer.github.io/music-data-notation/",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config ./vitest.config.mts",
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@marvin-brouwer/tools": "workspace:^",
+    "gh-pages": "^6.3.0"
+  },
+  "dependencies": {
+    "@marvin-brouwer/music-notation-encoder": "workspace:^",
+    "vite-plugin-solid": "^2.11.8",
+    "@quick-vite/gh-pages-spa": "^7.0.0",
+    "@solidjs/router": "^0.15.3",
+    "solid-js": "^1.9.5"
+  }
+}

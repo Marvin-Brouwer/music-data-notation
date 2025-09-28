@@ -1,8 +1,10 @@
 packages:
   - libs/*
   - plugins/*
+  - demo
 
 onlyBuiltDependencies:
+  - '@swc/core'
   - canvas
   - esbuild
   - python-wasm
