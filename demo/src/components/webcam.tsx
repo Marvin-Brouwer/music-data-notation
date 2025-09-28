@@ -262,11 +262,13 @@ export function Webcam(props: WebcamProps) {
 
   const stopMediaStream = (stream: MediaStream | null) => {
     if (stream) {
-      if (stream.getVideoTracks && stream.getAudioTracks) {
+      if (stream.getVideoTracks) {
         stream.getVideoTracks().map((track) => {
           stream.removeTrack(track);
           track.stop();
         });
+      } 
+      if (stream.getAudioTracks){
         stream.getAudioTracks().map((track) => {
           stream.removeTrack(track);
           track.stop();

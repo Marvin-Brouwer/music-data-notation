@@ -1,5 +1,5 @@
 import { Component, createSignal, onCleanup, onMount } from "solid-js";
-import { ScreenshotOptions, Webcam, getScreenshot, getScreenshotData } from "../components/webcam";
+import { Webcam, getScreenshotData } from "../components/webcam";
 import { musicNotationEncoder } from "@marvin-brouwer/music-notation-encoder";
 
 const videoConstraints: MediaStreamConstraints["video"] = {
@@ -52,6 +52,8 @@ export const Scanner: Component = () => {
 	onCleanup(() => {
 		clearInterval(interval);
 		interval = undefined;
+		webcamRef()?.pause();
+		webcamRef()?.remove()
 	})
 
 	return <>
@@ -59,6 +61,6 @@ export const Scanner: Component = () => {
 		<h2>Scan a code</h2>
 		<Webcam audio={false} videoConstraints={videoConstraints} ref={setWebcamRef} />
 		<p>&nbsp;</p>
-		<p class='data'>{decodedText()}</p>
+		<pre class='data'>{decodedText()}</pre>
 	</>
 }
