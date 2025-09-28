@@ -2,7 +2,7 @@ import { gitHubSpaConfig } from "@quick-vite/gh-pages-spa/config";
 import solid from 'vite-plugin-solid'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 
-import packageJson from './package.json' with { type: 'json' }
+import packageJson from './package.json' assert { type: 'json' }
 
 export default gitHubSpaConfig(packageJson, c => ({
     plugins: [
