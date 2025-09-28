@@ -29,7 +29,9 @@ export const EditForm: Component = () => {
 					[e.target.name]: e.target.value
 				})}
 			/>
-			<button type="button" disabled={value().length === 0} onclick={(e) => share(e, value())}>Share</button>
+			<button type="button" disabled={value().length === 0} onclick={(e) => share(e, value())}>
+				Share <span role='img'>💌</span>
+			</button>
 		</form>
 	</>
 }

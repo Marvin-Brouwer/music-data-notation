@@ -6,6 +6,6 @@ export const LandingPage: Component = () => <>
 	<p>Select either of these options to use the encoding:</p>
 	<ul>
 		<li><A href="/edit/">Editor</A></li>
-		<li>TODO Scanner</li>
+		<li><A href="/scan/">Scanner</A></li>
 	</ul>
 </>

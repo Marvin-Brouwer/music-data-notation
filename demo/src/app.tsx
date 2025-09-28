@@ -8,5 +8,6 @@ export const AppRoot: Component<RouteSectionProps> = (props) => {
         <h1>Music Data Notation Demo</h1>
 	    <p>A demo application to show off how this encoding works.</p>
         {children(() => props.children)()}
+	    <p><a href={import.meta.env.BASE_URL}>Back to home</a>.</p>
     </div>
 }
