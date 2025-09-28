@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Build lib
-        run: pnpm build -r
+        run: pnpm run -r build
         working-directory: '.'
       - name: Build example
         run: pnpm build

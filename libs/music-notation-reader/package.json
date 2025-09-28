@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "vitest --config ./vitest.config.mts",
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build"
+    "_start": "vite",
+    "_dev": "vite",
+    "_build": "vite build"
   },
   "license": "MIT",
   "devDependencies": {
