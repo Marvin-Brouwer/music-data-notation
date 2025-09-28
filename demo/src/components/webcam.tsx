@@ -201,7 +201,21 @@ export function Webcam(props: WebcamProps) {
     }
 
     if (!hasUserMedia()) {
-      requestUserMedia();
+      function rum() {
+        if(window.document.readyState !== 'complete') return;
+        requestUserMedia()
+        window.document.removeEventListener('readystatechange', rum);
+      }
+      if (window.document.readyState === 'complete') {
+        requestUserMedia()
+        return;
+      }
+      onMount(() => {
+        window.document.addEventListener('readystatechange', rum);
+      });
+      onCleanup(() => {
+        window.document.removeEventListener('readystatechange', rum);
+      });
     }
 
     if (mergedProps.children && typeof mergedProps.children != "function") {
@@ -391,11 +405,10 @@ export function Webcam(props: WebcamProps) {
 
   const videoStyle = mergedProps.mirrored
     ? {
-        ...(mergedProps.style as JSX.CSSProperties),
-        transform: `${
-          (mergedProps.style as JSX.CSSProperties).transform || ""
+      ...(mergedProps.style as JSX.CSSProperties),
+      transform: `${(mergedProps.style as JSX.CSSProperties).transform || ""
         } scaleX(-1)`,
-      }
+    }
     : mergedProps.style;
 
   return (

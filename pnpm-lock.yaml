@@ -37,11 +37,14 @@ importers:
         version: 1.9.9
       vite-plugin-solid:
         specifier: ^2.11.8
-        version: 2.11.8(solid-js@1.9.9)(vite@7.1.7(@types/node@24.5.2))
+        version: 2.11.8(solid-js@1.9.9)(vite@4.5.14(@types/node@24.5.2))
     devDependencies:
       '@marvin-brouwer/tools':
         specifier: workspace:^
         version: link:../libs/tools
+      '@vitejs/plugin-basic-ssl':
+        specifier: ^2.1.0
+        version: 2.1.0(vite@4.5.14(@types/node@24.5.2))
       gh-pages:
         specifier: ^6.3.0
         version: 6.3.0
@@ -877,6 +880,12 @@ packages:
   '@types/vexflow@4.0.1':
     resolution: {integrity: sha512-RRaayGsSJGfF8QcEf8F0O0tjG481rdHObuEqrEHFNHD14fJEwyFunBRuLPqqvHeN1SsxsJ4eonMAdEjCZ7MHKw==}
     deprecated: This is a stub types definition. vexflow provides its own type definitions, so you do not need this installed.
+
+  '@vitejs/plugin-basic-ssl@2.1.0':
+    resolution: {integrity: sha512-dOxxrhgyDIEUADhb/8OlV9JIqYLgos03YorAueTIeOUskLJSEsfwCByjbu98ctXitUN3znXKp0bYD/WHSudCeA==}
+    engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
+    peerDependencies:
+      vite: ^6.0.0 || ^7.0.0
 
   '@vitest/expect@3.2.4':
     resolution: {integrity: sha512-Io0yyORnB6sikFlt8QW5K7slY4OjqNX9jmJQ02QDda8lyM6B5oNgVWoSoKPac8/kgnCUzuHQKrSLtu/uOqqrig==}
@@ -2497,6 +2506,10 @@ snapshots:
     dependencies:
       vexflow: 4.2.5
 
+  '@vitejs/plugin-basic-ssl@2.1.0(vite@4.5.14(@types/node@24.5.2))':
+    dependencies:
+      vite: 4.5.14(@types/node@24.5.2)
+
   '@vitest/expect@3.2.4':
     dependencies:
       '@types/chai': 5.2.2
@@ -3421,7 +3434,7 @@ snapshots:
     dependencies:
       vite: 7.1.7(@types/node@24.5.2)
 
-  vite-plugin-solid@2.11.8(solid-js@1.9.9)(vite@7.1.7(@types/node@24.5.2)):
+  vite-plugin-solid@2.11.8(solid-js@1.9.9)(vite@4.5.14(@types/node@24.5.2)):
     dependencies:
       '@babel/core': 7.28.4
       '@types/babel__core': 7.20.5
@@ -3429,8 +3442,8 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 1.9.9
       solid-refresh: 0.6.3(solid-js@1.9.9)
-      vite: 7.1.7(@types/node@24.5.2)
-      vitefu: 1.1.1(vite@7.1.7(@types/node@24.5.2))
+      vite: 4.5.14(@types/node@24.5.2)
+      vitefu: 1.1.1(vite@4.5.14(@types/node@24.5.2))
     transitivePeerDependencies:
       - supports-color
 
@@ -3475,9 +3488,9 @@ snapshots:
       '@types/node': 24.5.2
       fsevents: 2.3.3
 
-  vitefu@1.1.1(vite@7.1.7(@types/node@24.5.2)):
+  vitefu@1.1.1(vite@4.5.14(@types/node@24.5.2)):
     optionalDependencies:
-      vite: 7.1.7(@types/node@24.5.2)
+      vite: 4.5.14(@types/node@24.5.2)
 
   vitest@3.2.4(@types/node@24.5.2)(jsdom@26.1.0(canvas@3.2.0)):
     dependencies:
