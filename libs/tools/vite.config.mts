@@ -8,7 +8,7 @@ export default defineConfig({
     },
     build: {
         target: 'esnext',
-        sourcemap: true,
+        sourcemap: 'inline',
         rollupOptions: {
             output: {
                 esModule: true,

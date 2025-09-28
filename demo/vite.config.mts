@@ -17,6 +17,6 @@ export default gitHubSpaConfig(packageJson, c => ({
     },
     build: {
         target: 'esnext',
-        sourcemap: true
+        sourcemap: 'inline'
     }
 }))

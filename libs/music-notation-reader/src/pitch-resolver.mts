@@ -9,7 +9,7 @@
  * Compute distance from the nearest staff line, map to diatonic steps, adjust for clef (use a simple enum).
  */
 
-import { Rect } from '@techstark/opencv-js';
+import type { Rect } from '@techstark/opencv-js';
 
 export function resolvePitch(
   box: Rect,

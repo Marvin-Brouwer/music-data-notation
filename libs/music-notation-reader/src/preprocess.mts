@@ -12,7 +12,7 @@
 import type { ImageData, Mat } from '@techstark/opencv-js';
 import cv from './open-cv-bootstrap.mts';
 
-export async function preprocess(img: ImageData): Promise<Mat> {
+export function preprocess(img: ImageData): Mat {
 
   // Convert ImageData → cv.Mat
   const src = cv.matFromImageData(img);

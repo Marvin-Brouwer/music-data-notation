@@ -12,7 +12,7 @@
 import type { Mat, Rect } from '@techstark/opencv-js';
 import cv from './open-cv-bootstrap.mts';
 
-export async function segmentSymbols(noStaff: Mat): Promise<Rect[]> {
+export function segmentSymbols(noStaff: Mat): Rect[] {
 
   // Find contours (external only)
   const contours = new cv.MatVector();

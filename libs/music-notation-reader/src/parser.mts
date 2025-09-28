@@ -9,7 +9,7 @@
  * Handles async loading of OpenCV, error handling, and returns the final array.
  */
 
-import cv, { type ImageData} from '@techstark/opencv-js';
+import { Rect, type ImageData} from '@techstark/opencv-js';
 
 import { preprocess } from './preprocess.mts';
 import { detectStaffLines, removeStaffLines } from './staff-detector.mts';
@@ -24,10 +24,10 @@ export async function parseSheetMusic(
   opts?: { clef?: 'treble' | 'bass' },
 ): Promise<ParsedNote[]> {
   // 1️⃣ Pre‑process → binary image
-  const binary = await preprocess(img);
+  const binary = preprocess(img);
 
   // 2️⃣ Detect staff lines
-  const staffLines = await detectStaffLines(binary);
+  const staffLines = detectStaffLines(binary);
   if (staffLines.length < 5) {
     // console.warn('Could not locate a full staff – returning empty result.');
     binary.delete();
@@ -35,22 +35,21 @@ export async function parseSheetMusic(
   }
 
   // 3️⃣ Remove staff lines (helps contour extraction)
-  const noStaff = await removeStaffLines(binary, staffLines);
+  const noStaff = removeStaffLines(binary, staffLines);
   binary.delete(); // free the original binary mat
 
   // 4️⃣ Segment symbols (bounding boxes)
-  const boxes = await segmentSymbols(noStaff);
-  noStaff.delete();
+  const boxes = segmentSymbols(noStaff);
 
   // 5️⃣ For each box: extract features → classify → pitch (if note)
   const detections: {
-    box: cv.Rect;
+    box: Rect;
     label: string;
     pitch?: string;
   }[] = [];
 
   for (const box of boxes) {
-    const feats = await extractFeatures(binary, box); // binary still alive here
+    const feats = extractFeatures(noStaff, box); // binary still alive here
     const label = classify(feats);
     let pitch: string | undefined;
 
@@ -61,6 +60,7 @@ export async function parseSheetMusic(
 
     detections.push({ box, label, pitch });
   }
+  noStaff.delete();
 
   // 6️⃣ Build VexFlow structs (only the data, no rendering)
   const vexNotes = buildVexflowNotes(detections);

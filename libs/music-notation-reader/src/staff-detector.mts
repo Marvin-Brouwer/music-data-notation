@@ -11,7 +11,7 @@
 import type { Mat } from '@techstark/opencv-js';
 import cv from './open-cv-bootstrap.mts';
 
-export async function detectStaffLines(bin: Mat): Promise<number[]> {
+export function detectStaffLines(bin: Mat): number[] {
 
   // Horizontal projection profile
   const rows = bin.rows;
@@ -48,7 +48,7 @@ export async function detectStaffLines(bin: Mat): Promise<number[]> {
   return grouped; // e.g., [12, 22, 32, 42, 52, …] (five lines per staff)
 }
 
-export async function removeStaffLines(bin: Mat, lines: number[]): Promise<Mat> {
+export function removeStaffLines(bin: Mat, lines: number[]): Mat {
   const result = bin.clone();
 
   // Dilate a thin horizontal structuring element over each line row

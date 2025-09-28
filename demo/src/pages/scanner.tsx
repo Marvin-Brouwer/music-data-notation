@@ -17,7 +17,7 @@ const encoder = musicNotationEncoder()
 
 const style = `
 .data {
-	display: inline-block;
+	display: block;
 	width: 300px;
 	overflow-wrap: anywhere;
 }
@@ -26,21 +26,26 @@ export const Scanner: Component = () => {
 
 
 	const [webcamRef, setWebcamRef] = createSignal<HTMLVideoElement>();
+	const [debugText, setDebugText] = createSignal('');
 	const [decodedText, setDecodedText] = createSignal('');
 	let interval: NodeJS.Timeout | undefined = undefined
 
 	const capture = async () => {
 		const imageSrc = getScreenshot(webcamRef()!,screenshotOptions);
-		if (imageSrc === decodedText()) return;
+		if (imageSrc === debugText()) {
+			setDecodedText('');
+			setDebugText('');
+			return;
+		}
 		// TODO actual decode
-		setDecodedText(imageSrc ?? '');
+		setDebugText(imageSrc ?? '');
 
 		const imageData = getScreenshotData(webcamRef()!)
 		if (!imageData) return
 		try{
 			let result = await encoder.decode(imageData);
-			if (result.length) debugger;
-			result = result;
+			if (!result.length) return setDecodedText('');
+			setDecodedText(result.map(r => `${r.keys.join('-')}/${r.duration}`).join(' '))
 		} catch (e){
 			console.error(e)
 		}
@@ -60,5 +65,6 @@ export const Scanner: Component = () => {
 		<Webcam audio={false} videoConstraints={videoConstraints} ref={setWebcamRef} />
 		<p>&nbsp;</p>
 		<p class='data'>{decodedText()}</p>
+		<p class='data'>{debugText()}</p>
 	</>
 }
