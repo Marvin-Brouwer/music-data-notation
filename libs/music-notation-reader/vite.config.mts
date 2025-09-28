@@ -5,6 +5,11 @@ export default defineConfig((c) => ({
         minifyIdentifiers: c.mode !== 'development',
         keepNames: c.mode === 'development'
     },
+    optimizeDeps: {
+        esbuildOptions: {
+            target: 'esnext'
+        }
+    },
     build: {
         target: 'esnext',
         sourcemap: true,
