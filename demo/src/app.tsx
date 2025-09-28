@@ -1,13 +1,12 @@
 
-import { RouteSectionProps, useLocation } from '@solidjs/router'
+import { RouteSectionProps } from '@solidjs/router'
 import { children, Component } from 'solid-js'
 
 export const AppRoot: Component<RouteSectionProps> = (props) => {
 
-    const route = useLocation()
-
     return <div>
-        <p>Route: {route.pathname}</p>
+        <h1>Music Data Notation Demo</h1>
+	    <p>A demo application to show off how this encoding works.</p>
         {children(() => props.children)()}
     </div>
 }
