@@ -182,3 +182,175 @@ describe('feature‑extractor.mts – geometric feature extraction', () => {
     expect(features.holes).toBe(0);
   });
 });
+
+/* ------------------------------------------------------------------
+ *  Additional test cases – keep the same helpers & style
+ * ------------------------------------------------------------------ */
+describe('feature‑extractor.mts – extra edge‑case coverage', () => {
+  // ---------------------------------------------------------------
+  // A️⃣  Partial‑fill (50 % white) → verify filledRatio calculation
+  // ---------------------------------------------------------------
+  test('reports a 0.5 filledRatio for a half‑filled block', () => {
+    // ---------- Arrange ----------
+    const rows = 10;
+    const cols = 10;
+    const mat = createEmptyMat(rows, cols);
+
+    // Fill the *left half* of the matrix (columns 0‑4) with white.
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols / 2; x++) {
+        setPixel(mat, x, y, 255);
+      }
+    }
+
+    const box = { x: 0, y: 0, width: cols, height: rows };
+
+    // ---------- Act ----------
+    const features = extractFeatures(mat, box);
+
+    // ---------- Clean up ----------
+    mat.delete();
+
+    // ---------- Assert ----------
+    expect(features.aspectRatio).toBeCloseTo(1.0, 5); // 10 / 10
+    expect(features.filledRatio).toBeCloseTo(0.5, 5); // exactly half the pixels are white
+    expect(features.holes).toBe(0);                // no inner contours
+  });
+
+  // ---------------------------------------------------------------
+  // B️⃣  Multiple holes (two nested cavities) → holes === 2
+  // ---------------------------------------------------------------
+  test('counts two holes when the ROI contains two nested inner contours', () => {
+    // ---------- Arrange ----------
+    const size = 20;
+    const mat = createEmptyMat(size, size);
+
+    // Draw an outer border (white) – this will be the *outer* contour.
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const isOuterBorder =
+          y === 0 || y === size - 1 || x === 0 || x === size - 1;
+        if (isOuterBorder) setPixel(mat, x, y, 255);
+      }
+    }
+
+    // Inside that border draw **two separate white squares** that will act as
+    // inner holes when `findContours` is invoked.
+    // Square 1 (top‑left)
+    for (let y = 4; y < 8; y++) {
+      for (let x = 4; x < 8; x++) {
+        setPixel(mat, x, y, 255);
+      }
+    }
+    // Square 2 (bottom‑right)
+    for (let y = 12; y < 16; y++) {
+      for (let x = 12; x < 16; x++) {
+        setPixel(mat, x, y, 255);
+      }
+    }
+
+    const box = { x: 0, y: 0, width: size, height: size };
+
+    // ----- Monkey‑patch cv.findContours to return three contours:
+    //   0 → outer border, 1 → inner square 1, 2 → inner square 2
+    const originalFindContours = cv.findContours;
+    cv.findContours = (
+      _image: InputArray,
+      contours: OutputArrayOfArrays,
+      ..._rest: any[]
+    ): void => {
+      // Empty any previous content first.
+      while (contours.size() > 0) {
+        const old = contours.get(contours.size() - 1);
+        old.delete();
+        contours.resize(0);
+      }
+      // Outer contour
+      contours.push_back(new cv.Mat());
+      // First inner contour
+      contours.push_back(new cv.Mat());
+      // Second inner contour
+      contours.push_back(new cv.Mat());
+    };
+
+    // ---------- Act ----------
+    const features = extractFeatures(mat, box);
+
+    // Restore original implementation
+    cv.findContours = originalFindContours;
+
+    // ---------- Clean up ----------
+    mat.delete();
+
+    // ---------- Assert ----------
+    expect(features.aspectRatio).toBeCloseTo(1.0, 5); // square ROI
+    // Filled ratio is not the focus here; just ensure it’s a valid number.
+    expect(typeof features.filledRatio).toBe('number');
+    // Two inner contours → holes = 2
+    expect(features.holes).toBe(2);
+  });
+
+  // ---------------------------------------------------------------
+  // C️⃣  Default findContours (no monkey‑patch) → holes === 0
+  // ---------------------------------------------------------------
+  test('returns zero holes when the real OpenCV findContours finds none', () => {
+    // ---------- Arrange ----------
+    const rows = 8;
+    const cols = 12;
+    const mat = createEmptyMat(rows, cols);
+
+    // Fill the whole matrix – a solid block has no inner contours.
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        setPixel(mat, x, y, 255);
+      }
+    }
+
+    const box = { x: 0, y: 0, width: cols, height: rows };
+
+    // ---------- Act ----------
+    const features = extractFeatures(mat, box);
+
+    // ---------- Clean up ----------
+    mat.delete();
+
+    // ---------- Assert ----------
+    expect(features.aspectRatio).toBeCloseTo(cols / rows, 5);
+    expect(features.filledRatio).toBeCloseTo(1.0, 5);
+    // The genuine OpenCV implementation returns an empty MatVector for a solid block,
+    // so `holes` should be 0 (size() == 0 → 0‑1 = -1, but the production code subtracts 1
+    // only after checking that size() > 0 – the net result is 0 holes).
+    expect(features.holes).toBe(0);
+  });
+
+  // ---------------------------------------------------------------
+  // D️⃣  Non‑integer aspect ratio (7 × 13) → verify floating‑point division
+  // ---------------------------------------------------------------
+  test('calculates a non‑integer aspect ratio correctly', () => {
+    // ---------- Arrange ----------
+    const rows = 7;
+    const cols = 13;
+    const mat = createEmptyMat(rows, cols);
+
+    // Fill everything – we only care about the aspect ratio here.
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        setPixel(mat, x, y, 255);
+      }
+    }
+
+    const box = { x: 0, y: 0, width: cols, height: rows };
+
+    // ---------- Act ----------
+    const features = extractFeatures(mat, box);
+
+    // ---------- Clean up ----------
+    mat.delete();
+
+    // ---------- Assert ----------
+    const expectedAspect = cols / rows; // 13 / 7 ≈ 1.857142857
+    expect(features.aspectRatio).toBeCloseTo(expectedAspect, 5);
+    expect(features.filledRatio).toBeCloseTo(1.0, 5);
+    expect(features.holes).toBe(0);
+  });
+});
