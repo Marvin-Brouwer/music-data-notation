@@ -1,6 +1,0 @@
-[
-  { "label": "quarter", "features": { "aspectRatio": 0.9, "filledRatio": 0.85, "holes": 0 } },
-  { "label": "whole",   "features": { "aspectRatio": 1.0, "filledRatio": 0.30, "holes": 1 } },
-  { "label": "eighth",  "features": { "aspectRatio": 0.95, "filledRatio": 0.80, "holes": 0 } },
-  { "label": "clef_G",  "features": { "aspectRatio": 0.6, "filledRatio": 0.70, "holes": 0 } }
-]

@@ -11,6 +11,10 @@
 
 import type { Rect } from '@techstark/opencv-js';
 
+// Map offset to note name based on clef
+export const TREBLE_MAP = ['F', 'E', 'D', 'C', 'B', 'A', 'G', 'F', 'E']; // line 0 = F4, etc.
+export const BASS_MAP = ['A', 'G', 'F', 'E', 'D', 'C', 'B', 'A', 'G'];
+
 export function resolvePitch(
   box: Rect,
   staffLines: number[],
@@ -33,11 +37,8 @@ export function resolvePitch(
 
   // Compute offset in half‑steps (each line/space = 1 step)
   const offset = Math.round((centerY - staffLines[nearestIdx]) / (lineSpacing / 2));
-  // Map offset to note name based on clef
-  const trebleMap = ['F', 'E', 'D', 'C', 'B', 'A', 'G', 'F', 'E']; // line 0 = F4, etc.
-  const bassMap   = ['A', 'G', 'F', 'E', 'D', 'C', 'B', 'A', 'G'];
 
-  const map = clef === 'treble' ? trebleMap : bassMap;
+  const map = clef === 'treble' ? TREBLE_MAP : BASS_MAP;
   const idx = nearestIdx + offset;
   const note = map[idx] ?? 'C'; // fallback
   const octave = clef === 'treble' ? 4 + Math.floor(idx / 7) : 2 + Math.floor(idx / 7);
