@@ -4,6 +4,9 @@
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.1.3",
+    "jsdom": "~27.0.0",
+    "@types/jsdom": "~27.0.0",
+    "@napi-rs/canvas": "^0.1.80",
     "vite": "^4.5.14",
     "vitest": "^3.2.4",
     "vite-plugin-commonjs": "^0.10.4"

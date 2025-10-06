@@ -41,6 +41,8 @@ function matToAscii(mat: Mat, threshold = 128): string {
 }
 
 export function writeImageToConsole(name: string, matOrImage: Mat | ImageData) {
+    // Ignore in tests
+    if ((globalThis as any).LOG_IMAGES === false) return;
     console.log("MAT [" + name + "]")
     if (matOrImage instanceof cv.Mat) {
         console.log(matToAscii(matOrImage))

@@ -1,6 +1,10 @@
 import { defineConfig } from 'vite';
+import commonJs from 'vite-plugin-commonjs';
 
 export default defineConfig({
+    plugins: [
+        commonJs()
+    ],
     // This is a devtool, don't minify
     esbuild: {
         minifyIdentifiers: false,
@@ -16,6 +20,7 @@ export default defineConfig({
             external: [
                 /^node:/,
                 /^virtual:/,
+                '@napi-rs/canvas'
             ]
         },
         lib: {

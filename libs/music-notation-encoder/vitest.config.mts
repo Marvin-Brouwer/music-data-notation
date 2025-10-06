@@ -7,6 +7,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'jsdom',
+    	setupFiles: ['./test/setup-vitest-canvas.ts'],
     	exclude: [...configDefaults.exclude, '**/node_modules/**'],
 		server: {
 			deps: {

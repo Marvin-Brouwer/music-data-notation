@@ -1,4 +1,7 @@
 import { defineConfig } from 'vite';
+import { generatePrototypes } from './gen/prototypes.generator.mts' 
+
+await generatePrototypes();
 
 export default defineConfig((c) => ({
     esbuild: {

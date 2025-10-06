@@ -14,7 +14,7 @@
 		"moduleDetection": "force",
 		"noEmit": true,
 		"allowJs": true,
-
+		"esModuleInterop": true,
 		/* Linting */
 		"strict": true,
 		"noUnusedLocals": true,
@@ -25,6 +25,9 @@
 	"include": [
 		"libs/*/vite.config.mts",
 		"libs/*/vitest.config.mts",
-		"./plugins/*/*.mts"
+		"./plugins/*/*.mts",
+		"./plugins/*/*.ts",
+		"./**/gen/**.*",
+		"./**/types/**.*",
 	]
 }

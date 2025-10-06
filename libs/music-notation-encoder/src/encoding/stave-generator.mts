@@ -1,4 +1,4 @@
-import { Stave, Renderer, BarlineType, Formatter, RenderContext, NoteStruct, StaveNote } from 'vexflow';
+import { Stave, Renderer, BarlineType, Formatter, RenderContext, type NoteStruct, StaveNote } from 'vexflow';
 
 const CLEF_STAVE_WIDTH = 70;
 const STAVE_MARGIN = 15;
@@ -26,7 +26,7 @@ export function generateStave(linePosition: number, notes: NoteStruct[], backgro
     })
 
     const renderer = new Renderer(canvas, Renderer.Backends.CANVAS);
-    renderer.resize(canvas.width, canvas.height);
+    // renderer.resize(canvas.width, canvas.height);
     const context = renderer.getContext();
 
     context.setFillStyle(backgroundColor)

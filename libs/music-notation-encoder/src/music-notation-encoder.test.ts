@@ -2,6 +2,13 @@ import { describe, test } from "vitest";
 import { musicNotationEncoder } from "./music-notation-encoder.mts";
 import { writeImage } from '@marvin-brouwer/tools';
 
+
+    // const canvas = Object.assign(document.createElement('canvas'), {
+    //     width: calculateWidth(notes.length),
+    //     height: BAR_HEIGHT
+    // })
+const BAR_HEIGHT = 140;
+
 describe('music-notation-encoder', () => {
 
     test('example', async () => {

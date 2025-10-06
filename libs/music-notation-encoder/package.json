@@ -20,12 +20,11 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/jsdom": "^21.1.7",
-    "jsdom": "^26.1.0",
     "@marvin-brouwer/tools": "workspace:^"
   },
   "dependencies": {
-    "vexflow": "^4.2.5",
+    "vexflow": "^5.0.0",
+    "vexflow-fonts": "^1.0.6",
     "@marvin-brouwer/fixed-length-encoding": "workspace:^",
     "@marvin-brouwer/reed-solomon-encoding": "workspace:^",
     "@marvin-brouwer/music-notation-reader": "workspace:^",

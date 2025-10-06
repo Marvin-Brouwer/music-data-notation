@@ -1,0 +1,11 @@
+{
+  "name": "@plugins/vite-plugin-generator",
+  "version": "0.0.0",
+  "description": "Plugin to import run a generator script on start",
+  "main": "./generator.plugin.js",
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.6.2"
+  }
+}

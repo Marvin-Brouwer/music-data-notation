@@ -20,8 +20,10 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/jsdom": "^21.1.7",
-    "jsdom": "^26.1.0"
+    "@marvin-brouwer/tools": "workspace:^",
+    "@plugins/vite-plugin-generator": "workspace:^",
+    "vexflow": "^5.0.0",
+    "vexflow-fonts": "^1.0.6"
   },
   "dependencies": {
     "@techstark/opencv-js": "^4.11.0-release.1",

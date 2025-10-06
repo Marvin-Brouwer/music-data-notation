@@ -25,7 +25,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-	"include": ["libs/*/src/**.mts"],
+	"include": ["libs/*/src/**.mts", "libs/music-notation-reader/gen/prototypes.generator.mts"],
   "exclude": ["libs/*/src/**.ts", "libs/vextab"],
   "typeAcquisition": {
     "exclude": ["@types/node"]

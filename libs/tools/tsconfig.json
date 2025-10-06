@@ -8,7 +8,6 @@
     "isolatedModules": true,
     "allowJs": true,
     "lib": ["ES2024.ArrayBuffer", "ES2017.TypedArrays", "ES2024", "DOM"],
-    "typeRoots": [],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
