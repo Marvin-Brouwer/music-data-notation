@@ -1,231 +1,275 @@
 /**
  * src/utils/generate-prototypes.mts
  *
- * Exported async function:
- *   generatePrototypes({ outDir }: { outDir: string }): Promise<void>
- *
- * What it does:
- *   1️⃣  Loads the Bravura music font that VexFlow ships as a
- *       Base‑64 string (via `vexflow/build/esm/src/fonts/bravura.js`).
- *   2️⃣  Registers that font with node‑canvas (writes a temporary .otf file).
- *   3️⃣  Uses VexFlow’s exported `Glyphs` map (no HTTP download) to obtain
- *       every glyph name → Unicode code‑point.
- *   4️⃣  For each glyph:
- *        • Renders it on a hidden canvas.
- *        • Saves a PNG for visual debugging (`writeImage`).
- *        • Runs your existing `preprocess` → `extractFeatures` pipeline.
- *        • Stores the three geometric descriptors together with the
- *          glyph’s *human‑readable name* (the key from `Glyphs`).
- *   5️⃣  Writes a `prototypes.json` file (array of `{ label, features }`)
- *       into the folder you supplied.
- *
- * The function can be imported and awaited from any other module, e.g.:
- *
- *   import { generatePrototypes } from './utils/generate-prototypes.mts';
- *   await generatePrototypes({ outDir: './src/generated' });
- *
- * ----------------------------------------------------------------------
- * IMPORTANT: this file assumes you are using **node‑canvas** (the npm
- * package named `canvas`) and **jsdom** for the minimal DOM that
- * VexFlow requires.
- * ----------------------------------------------------------------------
+ * Generates PNGs and feature data for all note combinations.
  */
 
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { JSDOM } from 'jsdom';
-import VF from 'vexflow';
+import {
+  BarlineType,
+  Formatter,
+  Renderer,
+  Stave,
+  StaveNote,
+  type StaveNoteStruct,
+} from 'vexflow';
 import { preprocess } from '../src/preprocess.mjs';
 import { extractFeatures } from '../src/feature-extractor.mjs';
 import { loadFont, patchCanvas, writeImage } from '@marvin-brouwer/tools';
-
-import "../types/vexflow-glyphs.d.mts"
 import { readdir, rm } from 'fs/promises';
-// @ts-expect-error
-const {Glyphs} = await import('../node_modules/vexflow/build/esm/src/glyphs') as
- typeof import('vexflow/build/esm/src/glyphs');
 
-
+// ------------------------------------------------------------------
+// 1️⃣  Types
+// ------------------------------------------------------------------
 
 (globalThis as any).LOG_IMAGES = false;
+type NoteToDraw = StaveNoteStruct & {
+  fileName: string;
+  label: string
+};
 
 // ------------------------------------------------------------------
-// 1️⃣  Constants & helpers
+// 2️⃣  Constants & helpers
 // ------------------------------------------------------------------
-const CANVAS_W = 200;
+
 const CANVAS_H = 200;
-const FONT_SCALE = 1.5;               // same scale you used when loading the font
-const BASE_FONT_SIZE = 40;            // base size for the VexFlow font
+const FONT_SCALE = 1.5;
+const BASE_FONT_SIZE = 40;
 
-/** Ensure a directory exists (recursive). */
 function ensureDir(dir: string) {
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
 // ------------------------------------------------------------------
-// 2️⃣  Minimal DOM shim – VexFlow expects `window` / `document`
+// 3️⃣  Minimal DOM shim
 // ------------------------------------------------------------------
+
 const html = `<!DOCTYPE html><html><body></body></html>`;
-const dom = new JSDOM(html, { resources: 'usable', runScripts: 'dangerously', includeNodeLocations: true });
+const dom = new JSDOM(html, { resources: 'usable', runScripts: 'dangerously' });
 (global as any).window = dom.window;
-global.document = dom.window.document;
+(global as any).document = dom.window.document;
+
+// ------------------------------------------------------------------
+// 4️⃣  Canvas & font setup
+// ------------------------------------------------------------------
+
+type Prototype = {
+  label: string;
+  debugFile?: string;
+  composition: StaveNoteStruct;
+  features: {
+    aspectRatio: number;
+    filledRatio: number;
+    holes: number;
+  };
+}
 
 patchCanvas();
-await loadFont(import.meta.resolve('vexflow-fonts/package.json'), './bravura/Bravura_1.392.woff2')
+await loadFont(import.meta.resolve('vexflow-fonts/package.json'), './bravura/Bravura_1.392.woff2');
 
-// ------------------------------------------------------------------
-// 3️⃣  Canvas setup (shared across all glyphs)
-// ------------------------------------------------------------------
-const canvas = Object.assign(document.createElement('canvas'), {
-  width: CANVAS_W,
-  height: CANVAS_H
-});
+const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d')!;
 
-
-// const fontBravura = await Font.load('Bravura', Bravura, { display: 'block' });
+const renderer = new Renderer(canvas, Renderer.Backends.CANVAS);
+const context = renderer.getContext();
+const sizeStave = new Stave(0, 0, 100).setContext(context);
+const sizeNote = new StaveNote({ keys: ["C/4"], duration: 'q' })
+  .setContext(context);
+Formatter.FormatAndDraw(context, sizeStave, [sizeNote])
+canvas.width = ((sizeNote.getWidth() + sizeNote.getVoiceShiftWidth()) * 2) + sizeNote.getWidth()
+canvas.height = sizeStave.getHeight()
 
 // ------------------------------------------------------------------
-// 2️⃣  Render a single glyph, write a PNG, and return its ImageData
+// 5️⃣  Note generation setup
 // ------------------------------------------------------------------
-/**
- * Render a glyph identified by its *human‑readable* name (the key from
- * VexFlow’s `Glyphs` map), write a PNG for visual debugging, and
- * return the raw ImageData.
- *
- * @param glyphName – the key from Glyphs (e.g. "v4e").
- * @param debugDir  – folder where the PNG will be saved.
- * @returns ImageData of the rendered glyph.
- */
-async function renderGlyph(glyphName: string, debugDir: string): Promise<ImageData> {
-  // --------------------------------------------------------------
-  // 0️⃣  Ensure the Bravura font is registered (once per process)
-  // --------------------------------------------------------------
 
 
-  // --------------------------------------------------------------
-  // 1️⃣  Look up the Unicode code‑point for the requested glyph.
-  // --------------------------------------------------------------
-  // `VF.Glyphs` is exported by VexFlow and maps the human‑readable name
-  // to an object that contains `code_point` (hex string, e.g. "E0A2").
-  const unicodeChar = Glyphs[glyphName as keyof typeof Glyphs];
+const rawNotes = [
+  'B/3', 'C/4', 'D#/4', 'E/4', 'F/4', 'G#/4', 'A/4', 'B/4', 'C/5', 'D/5', 'E/5', 'F/5', 'G/5', 'A/5', 'B/5'
+]
 
-  // Convert hex → actual Unicode character.
-  console.log(glyphName, unicodeChar)
+// TODO Figure out accidental rendering
+const accidentals = ['', '#', 'b']; // natural, sharp, flat
+const durations = ['1', '2', '4', '8', '16']; // note lengths
+const noteTypes = ['n', 'x']; // normal, muted
+const MAX_CHORD_SIZE = 7;
 
-  // --------------------------------------------------------------
-  // 3️⃣  Clear the canvas (transparent background)
-  // --------------------------------------------------------------
-  ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+// ------------------------------------------------------------------
+// 6️⃣  Glyph rendering
+// ------------------------------------------------------------------
 
-  // --------------------------------------------------------------
-  // 4️⃣  Configure the canvas context to use the Bravura music font.
-  // --------------------------------------------------------------
-  ctx.font = ` ${BASE_FONT_SIZE * FONT_SCALE}px Bravura`;
+function expandDurations(note: StaveNoteStruct) {
+  return durations.map(duration => ({ ...note, duration }))
+}
+function expandTypes(note: StaveNoteStruct) {
+  return noteTypes.map(type => ({ ...note, type }))
+}
+
+async function renderGlyph(note: NoteToDraw, debugDir: string, writeDebugOutput: boolean): Promise<ImageData> {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = `${BASE_FONT_SIZE * FONT_SCALE}px Bravura`;
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = '#000'; // black glyph
+  ctx.fillStyle = '#000';
 
-  // --------------------------------------------------------------
-  // 5️⃣  Measure the glyph so we can centre it.
-  // --------------------------------------------------------------
-  const metrics = ctx.measureText(unicodeChar);
-  const glyphWidth =
-    (metrics.actualBoundingBoxLeft ?? 0) +
-    (metrics.actualBoundingBoxRight ?? metrics.width);
-  const glyphHeight =
-    (metrics.actualBoundingBoxAscent ?? 0) +
-    (metrics.actualBoundingBoxDescent ?? 0);
+  const stave = new Stave(0, 0, canvas.width)
+    .setBegBarType(BarlineType.NONE)
+    .setEndBarType(BarlineType.NONE)
+    .setContext(context);
 
-  const x = (CANVAS_W - glyphWidth) / 2 - (metrics.actualBoundingBoxLeft ?? 0);
-  const y =
-    CANVAS_H / 2 +
-    ((metrics.actualBoundingBoxAscent ?? metrics.emHeightAscent ?? 0) -
-      glyphHeight / 2);
+  // TODO maybe necessary when generating clefs and timing indicators
+  // stave.draw();
 
-  // --------------------------------------------------------------
-  // 6️⃣  Render the character onto the canvas.
-  // --------------------------------------------------------------
-  ctx.fillText(unicodeChar, x, y);
+  const staveNote = new StaveNote({
+    keys: note.keys,
+    duration: note.duration,
+    type: note.type,
+  }).setContext(context)
 
-  // --------------------------------------------------------------
-  // 7️⃣  Capture the raw pixel data.
-  // --------------------------------------------------------------
-  const imgData = ctx.getImageData(0, 0, CANVAS_W, CANVAS_H) as ImageData;
+  Formatter.FormatAndDraw(context, stave, [staveNote]);
 
-  // --------------------------------------------------------------
-  // 8️⃣  Write a PNG for visual debugging (using @marvin-brouwer/tools)
-  // --------------------------------------------------------------
-  const pngPath = join(debugDir, `${glyphName}.png`);
-  writeImage(pngPath, imgData); // writes the PNG file
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height) as ImageData;
+
+  if (writeDebugOutput) {
+    const pngPath = join(debugDir, note.fileName);
+    writeImage(pngPath, imgData);
+  }
 
   return imgData;
 }
 
-// ------------------------------------------------------------------
-// 6️⃣  Core generator – async because we await the font load (which is
-//     effectively synchronous after we write the temp file)
-// ------------------------------------------------------------------
-
 /**
- * Generate `prototypes.json` and PNG debug images for **every glyph**
- * that VexFlow knows about (according to the exported `Glyphs` map).
- * The function uses the exact same preprocessing / feature‑extraction
- * pipeline you already have, so the numbers line up perfectly with your
- * classifier.
+ * Expand a note into all possible chord combinations drawn from the
+ * window starting at `index` (window length = maxSize).
  *
- * @param opts.outDir – absolute or relative path where the output will be written.
+ * - Always includes the singleton [note].
+ * - Then returns every combination (subsets) of the window of sizes 2..m.
+ * - Elements keep their original order.
+ *
+ * Example:
+ *   collection = ['C4','D4','E4','F4'], index = 0, maxSize = 4
+ *   -> returns [ ['C4'],
+ *                ['C4','D4'], ['C4','E4'], ['C4','F4'],
+ *                ['D4','E4'], ['D4','F4'], ['E4','F4'],
+ *                ['C4','D4','E4'], ['C4','D4','F4'], ['C4','E4','F4'], ['D4','E4','F4'],
+ *                ['C4','D4','E4','F4'] ]
  */
-export async function generatePrototypes(): Promise<void> {
-  const outRoot = resolve(__dirname);
-  const fontDir = join(outRoot, 'fonts');
-  const debugDir = join(outRoot, 'debug');
-  const outputPath = join(outRoot, '../src/prototypes.g.ts');
+export function expandNotes(
+  note: string,
+  index: number,
+  collection: string[]
+): string[][] {
+  // Guard: if index out of range, nothing to do
+  if (index < 0 || index >= collection.length) return [];
 
-  // Ensure output folders exist.
-  ensureDir(outRoot);
-  ensureDir(fontDir);
+  // Window starts at index and spans up to maxSize elements
+  const window = collection.slice(index, index + Math.max(1, MAX_CHORD_SIZE));
+  const n = window.length;
+  if (n === 0) return [];
+
+  const results: string[][] = [];
+
+  // Always include the single base note (the user expectation)
+  results.push([note]);
+
+  // Helper: generate all combinations of indices of size `k` from [0..n-1]
+  function combineIndices(k: number) {
+    const combo: number[] = [];
+    function helper(start: number, left: number) {
+      if (left === 0) {
+        // map index combo -> actual notes (preserving order)
+        results.push(combo.map((i) => window[i]));
+        return;
+      }
+      // choose next index i such that enough elements remain
+      for (let i = start; i <= n - left; i++) {
+        combo.push(i);
+        helper(i + 1, left - 1);
+        combo.pop();
+      }
+    }
+    helper(0, k);
+  }
+
+  // Produce combos of size 2 .. n (but not 1, we already pushed [note])
+  for (let size = 2; size <= n; size++) {
+    combineIndices(size);
+  }
+
+  return results;
+}
+
+
+// ------------------------------------------------------------------
+// 7️⃣  Main generation logic
+// ------------------------------------------------------------------
+export type GeneratePrototypeOptions = {
+  writeDebugOutput?: boolean,
+  cleanDebugFolder?: boolean,
+  outputFile: string,
+  overwrite?: boolean
+}
+export async function generatePrototypes(options: GeneratePrototypeOptions): Promise<void> {
+
+  const outRoot = resolve(__dirname);
+  const debugDir = join(outRoot, 'debug');
+  const outputPath = join(outRoot, options.outputFile);
+
+  if (!options.overwrite && existsSync(outputPath)) {
+    console.log(`✅ Skipped generating prototypes, already existing: ${outputPath}`);
+    return;
+  }
+
+  console.log('ensuring directories')
   ensureDir(debugDir);
 
-  const debugFiles = (await readdir(debugDir))
-    .filter(file => file !== '.gitignore')
-  for (const fileName of debugFiles)
-    await rm(debugDir+ '/' + fileName)
+  console.log('Generating note set')
 
-  // ----------------------------------------------------------------
-  // 6.2  Get the list of glyph names from VexFlow's Glyphs map.
-  // ----------------------------------------------------------------
-  const glyphNames = Object.keys(Glyphs)
-    .filter(name => name !== 'null')
-    .filter(name => !name.toLowerCase().includes('tab'))
-    .filter(name => !name.toLowerCase().includes('comb'))
-    .filter(name => !name.toLowerCase().includes('ranks'))
-    .filter(name => !name.toLowerCase().includes('arrow'))
-    .filter(name => !name.toLowerCase().includes('unused'))
+  // Assemble the full coverage set
+  const fullCoverageSet: NoteToDraw[] =
+    // For now, have the rest in the middle untill we figure out if we can handle it
+    expandNotes(rawNotes[4], 4, rawNotes)
+      // TODO figure out how to make exapandNotes stop in time
+      .filter(keys => keys[0] === rawNotes[4])
+      .map(keys => ({ keys }) as StaveNoteStruct)
+      .flatMap(expandDurations)
+      .flatMap(expandTypes)
+      .map(note => {
 
-  // ----------------------------------------------------------------
-  // 6.3  Iterate over every glyph name.
-  // ----------------------------------------------------------------
-  interface Prototype {
-    label: string;
-    features: {
-      aspectRatio: number;
-      filledRatio: number;
-      holes: number;
-    };
+        const keyComposition = note.keys!.map(k => rawNotes.indexOf(k) - 4)
+        const keyCompositionLabel = Array(7)
+          .fill('')
+          .map((_, i) => keyComposition.includes(i) ? 'o' : '-')
+          .join('')
+        return {
+          ...note,
+          label: `${keyCompositionLabel} ${note.type} ${note.duration}`,
+          composition: note,
+          fileName: `${keyCompositionLabel}.${note.type}.${note.duration}.png`
+        } as NoteToDraw
+      })
+
+
+  if (options.cleanDebugFolder) {
+    // Optional cleanup
+    const debugFiles = (await readdir(debugDir))
+      .filter((file) => file !== '.gitignore')
+      .filter((file) => fullCoverageSet.findIndex(x => x.fileName === file) === -1);
+    console.log('cleaning non-contender files', debugFiles)
+    for (const file of debugFiles) await rm(join(debugDir, file));
   }
 
   const prototypes: Prototype[] = [];
 
-  for (const glyphName of glyphNames) {
-    // Render the glyph → ImageData (PNG already written inside renderGlyph)
-    const imgData = await renderGlyph(glyphName, debugDir);
-
-    // Run the exact same preprocessing you use at runtime.
+  for (const staveNote of fullCoverageSet) {
+    console.log('Rendering', staveNote.fileName);
+    const imgData = await renderGlyph(staveNote, debugDir, options.writeDebugOutput ?? false);
+    await new Promise<void>(r => setTimeout(r, 10));
+    console.log('Processing', staveNote.fileName);
     const binaryMat = preprocess(imgData);
-
-    // Extract the three geometric descriptors.
+    await new Promise<void>(r => setTimeout(r, 10));
+    console.log('Extracting', staveNote.fileName);
     const { aspectRatio, filledRatio, holes } = extractFeatures(binaryMat, {
       x: 0,
       y: 0,
@@ -233,9 +277,11 @@ export async function generatePrototypes(): Promise<void> {
       height: binaryMat.rows,
     });
 
-    // Store the prototype (rounded to three decimals for readability).
+    const { label, fileName, ...rawStaveNote } = staveNote;
     prototypes.push({
-      label: glyphName,
+      label,
+      debugFile: options.writeDebugOutput ? fileName : undefined,
+      composition: rawStaveNote,
       features: {
         aspectRatio: Number(aspectRatio.toFixed(3)),
         filledRatio: Number(filledRatio.toFixed(3)),
@@ -243,14 +289,16 @@ export async function generatePrototypes(): Promise<void> {
       },
     });
 
-    // Clean up the temporary OpenCV matrix.
     binaryMat.delete();
+    // Burst per 5 to prevent overwhelming the system
+    await new Promise<void>(r => setTimeout(r, fullCoverageSet.indexOf(staveNote) % 15 === 0 ? 800 : 100));
   }
 
-  // ----------------------------------------------------------------
-  // 6.4  Write the JSON file.
-  // ----------------------------------------------------------------
-  const output = `// @ts-generated\nexport default ${JSON.stringify(prototypes, null, 2)};`;
+  const output = `// @ts-generated\nexport default ${JSON.stringify(
+    prototypes,
+    null,
+    2
+  )};`;
   writeFileSync(outputPath, output, 'utf8');
 
   console.log(`✅ Generated ${prototypes.length} prototypes → ${outputPath}`);
